@@ -18,12 +18,7 @@ export default function Dashboard() {
     <div className={`page-set ${ darkMode ? "page-set-dark" : "page-set-light" }`}>
 
       {/* HEADER */}
-      <Header
-        navigationProps={{
-          toggleDarkMode: () => setDarkMode((prev) => !prev),
-        }}
-      />
-
+      <Header navigationProps={{toggleDarkMode: () => setDarkMode((prev) => !prev),}} />
 
         {/* UPLOAD */}
         <div className="w-full">

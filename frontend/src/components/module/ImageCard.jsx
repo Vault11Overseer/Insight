@@ -6,6 +6,7 @@ export default function ImageCard({ image, onOpen }) {
     <div className="relative rounded-2xl overflow-hidden shadow group bg-white dark:bg-gray-800">
       {/* IMAGE */}
       <div className="relative h-48 w-full">
+        {/* IMAGE SOURCE FALLBACK: PREFER PREVIEW, THEN S3 URL, THEN LEGACY `url` */}
         <img
           src={image.preview_url || image.s3_url || image.url}
           alt={image.title}

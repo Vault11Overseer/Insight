@@ -76,15 +76,20 @@ export default function Upload() {
 
   setLoading(true);
   // TRY / EXCEPT
-  try {
-    const formData = new FormData();
+    try {
+      // BACKEND FIELD NAMES: THE BACKEND EXPECTS THESE SPECIFIC FORM FIELD NAMES
+      const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
+      // BACKEND EXPECTS THE FILE FIELD TO BE NAMED `file`
       formData.append("file", imageFile);
+      // USER TAGS AS A COMMA-SEPARATED STRING
       formData.append("user_tags", userTags);
 
-    // BACKEND EXPECTS COMMA-SEPERATED ALBUM ID'S
-    if (albumId) {formData.append("album_ids", albumId);}
+      // BACKEND EXPECTS COMMA-SEPARATED ALBUM IDS IN `album_ids`
+      if (albumId) {
+        formData.append("album_ids", albumId);
+      }
 
     const res = await fetch(`${API_BASE_URL}/images/`, {
       method: "POST",

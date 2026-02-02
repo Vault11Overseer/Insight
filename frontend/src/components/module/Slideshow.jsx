@@ -63,7 +63,7 @@ export default function Slideshow({ slides = [], darkMode = true, containerHeigh
       >
         {/* Logo Image */}
         <img
-          src="/public/bci-favicon-green.ico"
+          src="/bci-favicon-green.ico"
           alt="Logo"
           className="inline-block w-6 h-6 mr-2 align-middle"
         />

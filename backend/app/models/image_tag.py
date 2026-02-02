@@ -1,9 +1,11 @@
 # backend/app/models/image_tag.py
+# IMAGE TAG MODEL
 
-from sqlalchemy import Column, Integer, ForeignKey, Table
+# IMPORTS
+from sqlalchemy import Table, Column, Integer, ForeignKey
 from app.database.db import Base
 
-# Join table for many-to-many relationship between Images and Tags
+# JOIN TABLE M-M RELATIONSHIP FOR TAGS AND IMAGES
 image_tags = Table(
     "image_tags",
     Base.metadata,

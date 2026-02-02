@@ -1,32 +1,23 @@
 # backend/app/auth/aws.py
-
-# ======================================
 # AWS CONFIGURATION
-# ======================================
 
-# ======================================
 # IMPORTS
-# ======================================
 import os
 import boto3
 from botocore.exceptions import ClientError
 from typing import Optional
 
-# ======================================
 # AWS CONFIGURATION
-# ======================================
 AWS_REGION = os.getenv("AWS_REGION")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
-# Lazy-loaded clients
+# LAZY LOAD CLIENTS
 _s3_client: Optional[boto3.client] = None
 _rekognition_client: Optional[boto3.client] = None
 
 
-# ======================================
-# CLIENT GETTERS (Lazy initialization)
-# ======================================
+# CLIENT GETTERS (LAZY)
 def get_s3_client():
     """Get or create S3 client (lazy initialization)"""
     global _s3_client
@@ -42,6 +33,7 @@ def get_s3_client():
     return _s3_client
 
 
+# AWS REKOGNITION GETTER
 def get_rekognition_client():
     """Get or create Rekognition client (lazy initialization)"""
     global _rekognition_client
@@ -55,8 +47,3 @@ def get_rekognition_client():
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         )
     return _rekognition_client
-
-
-# Note: Clients are created lazily via get_s3_client() and get_rekognition_client()
-# This allows the app to start even if AWS credentials aren't configured
-# Errors will only occur when trying to use AWS features

@@ -1,15 +1,14 @@
 # backend/app/utils/auth.py
+# AUTH UTILITY
 
+# IMPORTS
 from passlib.context import CryptContext
 
-# =========================
-# Password hashing context
-# =========================
+
+# PASSWORD HASHING CONTEXT
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# =========================
-# Hash a plain password
-# =========================
+# HASH PLAIN PASSWORD
 def hash_password(password: str) -> str:
     if not isinstance(password, str):
         raise TypeError("Password must be a string")
@@ -18,9 +17,8 @@ def hash_password(password: str) -> str:
         raise ValueError("Password exceeds bcrypt 72-byte limit")
 
     return pwd_context.hash(password)
-# =========================
-# Verify password
-# =========================
+
+# VERIFY PASSWORD
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verifies that the plain password matches the hashed password.

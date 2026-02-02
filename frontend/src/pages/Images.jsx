@@ -120,6 +120,7 @@ export default function Images() {
               key={image.id}
               image={image}
               darkMode={darkMode}
+              // PERMISSION CHECK: ONLY THE UPLOADER OR AN ADMIN CAN EDIT
               canEdit={
                 image.uploader_user_id === currentUser?.id ||
                 currentUser?.role === "admin"

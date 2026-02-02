@@ -1,5 +1,3 @@
-# backend/app/routes/favorites.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -10,7 +8,7 @@ from app.models.user import User
 from app.models.image import Image
 from app.schemas.image import ImageRead
 from app.auth.dev_auth import get_current_user
-from app.routes.images import _format_image_response
+from app.routes.images import format_image
 
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
 
@@ -26,12 +24,14 @@ def list_favorites(
     """
     Users can view their own favorites.
     """
-    favorites = db.query(ImageFavorite).filter(
-        ImageFavorite.user_id == current_user.id
-    ).all()
-    
-    images = [fav.image for fav in favorites]
-    return [_format_image_response(img, db) for img in images]
+    favorites = (
+        db.query(ImageFavorite)
+        .filter(ImageFavorite.user_id == current_user.id)
+        .all()
+    )
+
+    images = [fav.image for fav in favorites if fav.image]
+    return [format_image(img) for img in images]
 
 
 # =========================
@@ -50,14 +50,16 @@ def add_favorite(
     if not image:
         raise HTTPException(status_code=404, detail="Image not found")
 
-    # Check if already favorited
     existing = db.query(ImageFavorite).filter(
         ImageFavorite.user_id == current_user.id,
         ImageFavorite.image_id == image_id
     ).first()
 
     if existing:
-        raise HTTPException(status_code=400, detail="Image already in favorites")
+        raise HTTPException(
+            status_code=400,
+            detail="Image already in favorites"
+        )
 
     favorite = ImageFavorite(
         user_id=current_user.id,
@@ -87,7 +89,10 @@ def remove_favorite(
     ).first()
 
     if not favorite:
-        raise HTTPException(status_code=404, detail="Favorite not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Favorite not found"
+        )
 
     db.delete(favorite)
     db.commit()
@@ -106,9 +111,9 @@ def check_favorite(
     """
     Check if an image is in the user's favorites.
     """
-    favorite = db.query(ImageFavorite).filter(
+    exists = db.query(ImageFavorite).filter(
         ImageFavorite.user_id == current_user.id,
         ImageFavorite.image_id == image_id
     ).first()
 
-    return {"is_favorited": favorite is not None}
+    return {"is_favorited": exists is not None}

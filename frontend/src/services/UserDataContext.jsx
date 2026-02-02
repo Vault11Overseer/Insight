@@ -1,7 +1,7 @@
 // frontend/src/services/UserDataContext.jsx
-
-
 // USER DATA CONTEXT
+
+
 // IMPORT
 import React, {createContext, useContext, useEffect, useState,} from "react";
 import { API_BASE_URL } from "./api";
@@ -74,6 +74,7 @@ export function UserDataProvider({ children }) {
     fetchCounts();
   }, [user]);
 
+  // RETURN CONTEXT TO PROVIDER
   return (
     <UserDataContext.Provider
       value={{

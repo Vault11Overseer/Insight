@@ -1,9 +1,12 @@
 # backend/app/models/image_album.py
+# IMAGE ALBUM MODEL
 
+# IMPORTS
 from sqlalchemy import Column, Integer, ForeignKey, Table
 from app.database.db import Base
 
-# Join table for many-to-many relationship between Images and Albums
+# JOIN TABLE
+# M-M RELATIONSHIP FOR IMAGES AND ALBUMS
 image_albums = Table(
     "image_albums",
     Base.metadata,

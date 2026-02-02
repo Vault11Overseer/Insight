@@ -1,8 +1,7 @@
 # backend/app/auth/s3.py
+# S3 AUTH
 
-# ======================================
 # IMPORTS
-# ======================================
 import os
 import base64
 from uuid import uuid4
@@ -11,11 +10,7 @@ from fastapi import UploadFile
 from botocore.exceptions import NoCredentialsError, ClientError
 from app.auth.aws import get_s3_client, get_rekognition_client
 
-
-
-# ======================================
 # S3 CONFIGURATION (Lazy loading)
-# ======================================
 def _get_aws_config():
     """Get AWS configuration, raising error if not set"""
     aws_region = os.getenv("AWS_REGION")
@@ -30,24 +25,21 @@ def _get_aws_config():
     return aws_region, bucket
 
 
+# GET S3 BASE URL -> .ENV
 def _get_s3_base_url():
     """Get S3 base URL, validating config first"""
     aws_region, bucket = _get_aws_config()
     return f"https://{bucket}.s3.{aws_region}.amazonaws.com"
 
 
-# ======================================
-# HELPER FUNCTIONS
-# ======================================
+# GET S3 URL
 def get_s3_url(s3_key: str) -> str:
     """Get the full S3 URL from an S3 key"""
     base_url = _get_s3_base_url()
     return f"{base_url}/{s3_key}"
 
 
-# ======================================
-# FILE UPLOAD
-# ======================================
+# FILE UPLOAD TO S3 BUCKET
 def upload_file_to_s3(
     file: UploadFile,
     user_id: int,
@@ -55,8 +47,8 @@ def upload_file_to_s3(
 ) -> tuple[str, str]:
     """
     Upload a file to S3. Returns (s3_key, s3_url).
-    User files: folder=None -> uploads/{user_id}/
-    Default images: folder="defaultImages/"
+    User files: folder=None -> uploads/
+    Default ALBUM images: folder="defaultImages/"
     """
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     prefix = folder or f"uploads/{user_id}/"
@@ -83,9 +75,7 @@ def upload_file_to_s3(
 
 
 
-# ======================================
 # BASE64 UPLOAD
-# ======================================
 def upload_base64_to_s3(base64_str: str, folder: str = "defaultImages/") -> tuple[str, str]:
     """
     Upload Base64 image to S3. Returns public URL.
@@ -122,9 +112,7 @@ def upload_base64_to_s3(base64_str: str, folder: str = "defaultImages/") -> tupl
 
 
 
-# ======================================
 # REKOGNITION LABEL DETECTION
-# ======================================
 def rekognition_detect_labels(s3_key: str, max_labels: int = 10, min_confidence: float = 80.0):
     """
     Detects labels in an image stored on S3.
@@ -148,9 +136,7 @@ def rekognition_detect_labels(s3_key: str, max_labels: int = 10, min_confidence:
 
 
 
-# ======================================
 # DELETE S3 OBJECT
-# ======================================
 def delete_s3_object(s3_key: str):
     """Delete a file from the AWS S3 bucket based on its key."""
     if not s3_key:
@@ -162,9 +148,7 @@ def delete_s3_object(s3_key: str):
         print(f"❌ Error deleting S3 object: {e}")
 
 
-# ======================================
 # SIGNED URLS (PRIVATE BUCKET SUPPORT)
-# ======================================
 def generate_signed_url(s3_key: str, expires_in: int = 3600) -> Optional[str]:
     """
     Generate a temporary signed URL for a private S3 object.

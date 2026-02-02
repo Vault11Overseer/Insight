@@ -1,18 +1,20 @@
 # backend/app/models/image.py
+# IMAGE MODEL
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, JSON
+# IMPORTS
+from sqlalchemy import (Column, Integer, String, Boolean, DateTime, ForeignKey, Float, JSON)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.ext.mutable import MutableDict
 from app.database.db import Base
 
-
+# IMAGE BASE CLASS
 class Image(Base):
     __tablename__ = "images"
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # Ownership
+    # OWNERSHIP
     uploader_user_id = Column(
         Integer,
         ForeignKey("users.id", ondelete="CASCADE"),
@@ -20,34 +22,43 @@ class Image(Base):
         index=True
     )
 
-    # Storage (S3 keys)
-    s3_key = Column(String, nullable=False, unique=True)  # Original image location
-    preview_key = Column(String, nullable=True)  # Optimized preview image
+    # S3 STORAGE LINKS
+    s3_key = Column(String, nullable=False, unique=True)
+    preview_key = Column(String, nullable=True)
 
-    # Basic Metadata
+    # CORE METADATA
     title = Column(String, nullable=False)
-    description = Column(String, nullable=True)
-    image_metadata = Column(MutableDict.as_mutable(JSON), default=dict)  # Full EXIF + misc
+    description = Column(String, nullable=False)
 
-    # Camera / Location Data
-    camera_make = Column(String, nullable=True)
-    camera_model = Column(String, nullable=True)
-    lens = Column(String, nullable=True)
-    focal_length = Column(String, nullable=True)
-    aperture = Column(String, nullable=True)
-    shutter_speed = Column(String, nullable=True)
-    iso = Column(String, nullable=True)
-    gps_latitude = Column(Float, nullable=True)
-    gps_longitude = Column(Float, nullable=True)
-    location_name = Column(String, nullable=True)  # Derived or reverse-geocoded
+    # FULL EXIF + EXTENSIBLE METADATA (JSONB IN POSTGRES)
+    image_metadata = Column(
+        MutableDict.as_mutable(JSON),
+        default=dict,
+        nullable=False
+    )
 
-    # Dates
-    captured_at = Column(DateTime(timezone=True), nullable=True)  # Date image was taken
+    # CAMERA JSON
+    camera_make = Column(String)
+    camera_model = Column(String)
+    lens = Column(String)
+    focal_length = Column(String)
+    aperture = Column(String)
+    shutter_speed = Column(String)
+    iso = Column(String)
+    # LOCATION JSON
+    gps_latitude = Column(Float)
+    gps_longitude = Column(Float)
+    location_name = Column(String)
+
+    # DATES
+    captured_at = Column(DateTime(timezone=True))
+    # CREATED AT
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False
     )
+    # UPDATED AT
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -55,37 +66,37 @@ class Image(Base):
         nullable=False
     )
 
-    # Sharing & Protection
-    watermark_enabled = Column(Boolean, default=False, nullable=False)  # Applied at share-time
+    # SHARING - WATERMARK
+    watermark_enabled = Column(Boolean, default=False, nullable=False)
 
-    # Relationships
-    uploader = relationship("User", backref="images")
-    
-    # Many-to-many with Albums
+    # UPLOADER RELATIONS
+    uploader = relationship("User", back_populates="images")
+
+    # ALBUM RELATIONS
     albums = relationship(
         "Album",
         secondary="image_albums",
         back_populates="images"
     )
-    
-    # Many-to-many with Tags
+
+    # TAG RELATIONS
     tags = relationship(
         "Tag",
         secondary="image_tags",
         back_populates="images"
     )
-    
-    # One-to-many with Share Links (when resource_type is 'image')
-    share_links = relationship(
-        "ShareLink",
-        foreign_keys="ShareLink.resource_id",
-        primaryjoin="and_(ShareLink.resource_type == 'image', ShareLink.resource_id == Image.id)",
-        viewonly=True
-    )
-    
-    # One-to-many with Favorites
+
+    # FAVORITE RELATIONS
     favorites = relationship(
         "ImageFavorite",
         back_populates="image",
         cascade="all, delete-orphan"
+    )
+
+    # SHARE LINKS RELATIONS
+    share_links = relationship(
+        "ShareLink",
+        primaryjoin="and_(ShareLink.resource_type == 'image', "
+                    "foreign(ShareLink.resource_id) == Image.id)",
+        viewonly=True
     )

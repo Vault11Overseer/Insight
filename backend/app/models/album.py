@@ -1,12 +1,14 @@
 # backend/app/models/album.py
+# ALBUM MODEL
 
+# IMPORTS
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database.db import Base
 
-
+# ALBUM BASE
 class Album(Base):
     __tablename__ = "albums"
 
@@ -14,7 +16,6 @@ class Album(Base):
 
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    cover_image_s3_key = Column(String, nullable=True)  # S3 key for album cover image
 
     owner_user_id = Column(
         Integer,
@@ -23,14 +24,17 @@ class Album(Base):
         index=True
     )
 
-    # Reserved for system use if needed (not used for Gallery anymore)
+    # RESERVED FOR FUTURE SYSTEM ALBUMS (NOT GALLERY)
     is_master = Column(Boolean, default=False, nullable=False)
 
+    # CREATED COLUMN
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False
     )
+
+    # UPDATED COLUMN
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -38,10 +42,10 @@ class Album(Base):
         nullable=False
     )
 
-    # Relationships
-    owner = relationship("User", backref="albums")
-    
-    # Many-to-many with Images
+    # OWNER RELATIONS
+    owner = relationship("User", back_populates="albums")
+
+    # IMAGE RELATIONS
     images = relationship(
         "Image",
         secondary="image_albums",

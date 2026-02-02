@@ -16,53 +16,37 @@
     uvicorn app.main:app --reload
 
 <!-- LOCAL ENDPOINT -->
-    <!-- http://127.0.0.1:8000 -->
+    http://127.0.0.1:8000
 
 <!-- SWAGGER ENDPOINT -->
-<!-- http://localhost:8000/docs -->
+    http://localhost:8000/docs
 
 <!-- DB TEMPLATE FOR POSTGRES -->
-postgresql://<username>:<password>@<host>:<port>/<database>?<options>
-
-<!-- NEW DB -->
-DATABASE_URL=postgresql://insight_db_admin:uLV2f6EMAuNtU5eECAsK0YNaubGwHcUl@dpg-d5laodkmrvns73ebk340-a.oregon-postgres.render.com:5432/insight_db_rfy7?sslmode=require
+    postgresql://<username>:<password>@<host>:<port>/<database>?<options>
 
 <!-- NEW START DB -->
-psql "postgresql://insight_db_admin:uLV2f6EMAuNtU5eECAsK0YNaubGwHcUl@dpg-d5laodkmrvns73ebk340-a.oregon-postgres.render.com:5432/insight_db_rfy7"
+    psql "postgresql://insight_db_admin:uLV2f6EMAuNtU5eECAsK0YNaubGwHcUl@dpg-d5laodkmrvns73ebk340-a.oregon-postgres.render.com:5432/insight_db_rfy7"
 
 
 <!-- POSTGRES -->
 
 <!-- SHOW TABLES -->
-\dt
+    \dt
 
 <!-- SHOW SCHEMS -->
-\dn
+    \dn
 
 <!-- SHOW ALL DATA -->
-SELECT * FROM library
+    SELECT * FROM library
 
 <!-- EXIT -->
-\q
+    \q
 
 <!-- CHECK USERS IN USER TABLE -->
-SELECT id, username, email, role, profile_metadata
-FROM users;
+    SELECT id, username, email, role, profile_metadata
+    FROM users;
 
 <!-- RUNNING DB SCRIPT -->
-python -m app.scripts.init_db
-
-
-
-BACKEND
-- [ ] Python
-- [ ] FastApi
-- [ ] SQLalchemy
-- [ ] Postgres
-- [ ] Gunicorn
-- [ ] Boto3
-- [ ] Unicorn
-- [ ] Pydantic
-
+    python -m app.scripts.init_db
 
 

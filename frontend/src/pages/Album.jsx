@@ -1,3 +1,6 @@
+// frontend/src/pages/Album.jsx
+
+// IMPORTS
 import React, { useEffect, useState } from "react";
 import Header from "../components/module/Header";
 import AlbumCard from "../components/module/AlbumCard";
@@ -8,17 +11,15 @@ import defaultAlbumImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
 
 export default function Albums() {
-  // =========================
-  // STATE
-  // =========================
+  // USER STATE
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  // ALBUM STATE
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [coverImagePreview, setCoverImagePreview] = useState(null);
-
+  // CURRENT USER STATE
   const { user: currentUser, darkMode, setDarkMode } = useUserData();
   const navigate = useNavigate();
 
