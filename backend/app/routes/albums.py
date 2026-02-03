@@ -10,6 +10,7 @@ from app.models.album import Album
 from app.models.user import User
 from app.schemas.album import AlbumCreate, AlbumRead, AlbumUpdate
 from app.auth.dev_auth import get_current_user
+from app.auth.s3 import upload_file_to_s3, get_s3_url
 
 # ROUTER
 router = APIRouter(prefix="/albums", tags=["Albums"])
@@ -24,6 +25,7 @@ def format_album(album: Album) -> AlbumRead:
         is_master=album.is_master,
         created_at=album.created_at,
         updated_at=album.updated_at,
+        cover_image_url=getattr(album, "cover_image_url", None),
         image_ids=[img.id for img in album.images],
     )
 
@@ -49,9 +51,12 @@ def create_album(
         is_master=False,
     )
 
-    # (Optional) later: handle image upload here
-    # if default_image:
-    #     upload to S3 / local / etc
+    if default_image:
+        upload_result = upload_file_to_s3(default_image, user_id=current_user.id, folder="album_images")
+        s3_key = upload_result[0] if isinstance(upload_result, tuple) else upload_result
+        url = get_s3_url(s3_key)
+        if hasattr(album, "cover_image_url"):
+            album.cover_image_url = url
 
     db.add(album)
     db.commit()

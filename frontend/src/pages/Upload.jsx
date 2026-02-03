@@ -230,7 +230,7 @@ export default function Upload() {
               </div>
             ) : (
               <label htmlFor="image-input" className={"flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer"}>
-                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-black">
+                <div className="flex flex-col items-center justify-center text-center pt-5 pb-6 text-black">
                   <p className="mb-2 text-sm text-xl text-center opacity-70">Click or drag & drop to upload your image.</p>
                   <p>Accepted Image Typres: PNG, JPG, JPEG, SVG</p>
                   <p>Upload File Size: 20 GIGS</p>

@@ -5,7 +5,7 @@
 import React, { useEffect, useState } from "react";
 import Header from "../components/module/Header";
 import AlbumCard from "../components/module/AlbumCard";
-import { API_BASE_URL } from "../services/api";
+import { API_BASE_URL, createAlbum, deleteAlbum } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { LibraryBig } from "lucide-react";
 import defaultAlbumImage from "/default_album_image.png";
@@ -22,7 +22,7 @@ export default function Albums() {
   const [coverImage, setCoverImage] = useState(null);
   const [coverImagePreview, setCoverImagePreview] = useState(null);
   // CURRENT USER STATE
-  const { user: currentUser, darkMode, setDarkMode } = useUserData();
+  const { user: currentUser, darkMode, setDarkMode, setAlbumsCount } = useUserData();
   const navigate = useNavigate();
 
 // FETCH ALBUMS  
@@ -57,9 +57,7 @@ export default function Albums() {
     if (!window.confirm(`Delete "${album.title}"?`)) return;
 
     try {
-      await fetch(`${API_BASE_URL}/albums/${album.id}`, {
-        method: "DELETE",
-      });
+      await deleteAlbum(album.id);
 
       setAlbums((prev) => prev.filter((a) => a.id !== album.id));
     } catch (err) {
@@ -100,30 +98,9 @@ export default function Albums() {
     if (!title.trim()) return;
 
     try {
-      const formData = new FormData();
-      formData.append("title", title);
-      if (description) {
-        formData.append("description", description);
-      }
-
-      // Only append image if user selected one
-      // Backend will use default image if none is provided
-      if (coverImage) {
-        formData.append("default_image", coverImage);
-      }
-
-      const res = await fetch(`${API_BASE_URL}/albums/`, {
-        method: "POST",
-        body: formData,  
-      });
-
-      if (!res.ok) {
-        const error = await res.json().catch(() => ({ detail: "Failed to create album" }));
-        throw new Error(error.detail || "Failed to create album");
-      }
-
-      const newAlbum = await res.json();
+      const newAlbum = await createAlbum(title, description, coverImage);
       setAlbums((prev) => [newAlbum, ...prev]);
+      setAlbumsCount((prev) => prev + 1);
 
       // Reset form
       setTitle("");
@@ -164,28 +141,24 @@ export default function Albums() {
 
         <form
           onSubmit={handleCreateAlbum}
-          className={`p-6 rounded-2xl shadow space-y-4 ${
-            darkMode
-              ? "bg-[#BDD63B] text-black"
-              : "bg-[#263248] text-white"
-          }`}
+          className="w-full p-6 rounded-2xl space-y-4"
         >
           <h2 className="text-xl font-semibold">Create New Album</h2>
-
+          {/* TITLE INPUT */}
           <input
             type="text"
             placeholder="Album title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-3 rounded-lg bg-white text-black outline-none"
+            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
             required
           />
-
+          {/* DESCRIPTION INPUT */}
           <textarea
             placeholder="Album description (optional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full p-3 rounded-lg bg-white text-black outline-none resize-none"
+            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
             rows={3}
           />
 
@@ -217,15 +190,9 @@ export default function Albums() {
               </div>
             ) : (
               <div className="relative">
-                <label
-                  htmlFor="cover-image-input"
-                  className={`flex flex-col bg-white text-black items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition ${
-                    darkMode
-                      ? "border-gray-600 hover:border-gray-500 bg-gray-800"
-                      : "border-gray-300 hover:border-gray-400 bg-gray-50"
-                  }`}
-                >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <label htmlFor="cover-image-input" >
+                  <div className={`inputs-set flex flex-col items-center justify-center pt-5 pb-6 text black ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`} >
+          
                     <svg
                       className="w-8 h-8 mb-2 opacity-50 "
                       fill="none"
@@ -256,7 +223,8 @@ export default function Albums() {
                   />
                 </label>
                 {!coverImage && (
-                  <div className="mt-2 p-2 text-l bg-white text-black rounded-lg opacity-60 text-center">
+                  <div className={`inputs-set mt-2 p-2 ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`} >
+                  
                     Default image preview:
                     <img
                       src={defaultAlbumImage}
@@ -269,14 +237,8 @@ export default function Albums() {
             )}
           </div>
 
-          <button
-            type="submit"
-            className={` px-6 py-2 rounded-full font-semibold transition ${
-              darkMode
-                ? "bg-[#263248] text-white hover:bg-[#122342]"
-                : "bg-[#BDD63B] text-black hover:bg-[#a4c12d]"
-            }`}
-          >
+          {/* UPLOAD IMAGE BUTTON */}
+          <button type="submit" className={`button-set ${ darkMode ? "button-set-dark" : "button-set-light" }`}>
             Create Album
           </button>
         </form>

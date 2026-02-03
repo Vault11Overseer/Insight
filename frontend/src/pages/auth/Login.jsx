@@ -6,16 +6,16 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import Slideshow, { introSlides } from "../../components/module/Slideshow";
-import { API_BASE_URL } from "../../services/api";
+import { login } from "../../services/api";
 import { useUserData } from "../../services/UserDataContext";
 
 // LOGIN
 export default function Login() {
   // STATE
-  const { darkMode, setDarkMode } = useUserData();
+  const { setUser, darkMode, setDarkMode } = useUserData();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("admin@insight.local"); // pre-fill dev user
+  const [email, setEmail] = useState("webdevadmin@bcimedia.com"); // pre-fill dev user
   const [password, setPassword] = useState("devpassword");   // pre-fill dev password
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(() => JSON.parse(localStorage.getItem("rememberMe")) ?? false);
@@ -26,36 +26,20 @@ export default function Login() {
     const storage = rememberMe ? localStorage : sessionStorage;
     storage.setItem("user", JSON.stringify(user));
     localStorage.setItem("rememberMe", JSON.stringify(rememberMe));
+    setUser(user);
     navigate("/dashboard");
-  };
-
-  // DEV LOGIN
-  const handleDevLogin = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Login failed" }));
-        alert(`Login failed: ${err.detail}`);
-        return;
-      }
-
-      const data = await res.json();
-      persistLogin(data.user);
-    } catch (err) {
-      console.error("Dev login error:", err);
-      alert("Error connecting to backend.");
-    }
   };
 
   // FORM SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await handleDevLogin();
+    try {
+      const userWithToken = await login(email, password);
+      persistLogin(userWithToken);
+    } catch (err) {
+      console.error("Login error:", err);
+      alert(err.message || "An error occurred during login.");
+    }
   };
 
   return (

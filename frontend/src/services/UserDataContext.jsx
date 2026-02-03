@@ -4,27 +4,27 @@
 
 // IMPORT
 import React, {createContext, useContext, useEffect, useState,} from "react";
-import { API_BASE_URL } from "./api";
+import { getAlbums, getImages } from "./api";
   
 // STATE
 const UserDataContext = createContext(null);
 
 // EXPORT
 export function UserDataProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+      console.error("Failed to parse user from storage", error);
+      return null;
+    }
+  });
   const [albumsCount, setAlbumsCount] = useState(0);
   const [imagesCount, setImagesCount] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
     return JSON.parse(localStorage.getItem("darkMode")) ?? true;
   });
-
-  // LOAD USER FROM LOCAL STORAGE
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user") || sessionStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
 
   // SYNC DARK MODE
   useEffect(() => {
@@ -43,29 +43,22 @@ export function UserDataProvider({ children }) {
 
     const fetchCounts = async () => {
       try {
-        // ALBUM COUNT
-        const albumsRes = await fetch(`${API_BASE_URL}/albums/`, {
-          credentials: "include",
-        });
+        // Use API service functions that include the auth header
+        const [albums, images] = await Promise.all([
+          getAlbums(),
+          getImages(),
+        ]);
 
-        if (albumsRes.ok) {
-          const albums = await albumsRes.json();
-          setAlbumsCount(
-            albums.filter((a) => a.owner_user_id === user.id).length
-          );
-        }
+        // Filter counts on the client side
+        const userAlbumsCount = albums.filter(
+          (a) => a.owner_user_id === user.id
+        ).length;
+        const userImagesCount = images.filter(
+          (img) => img.uploader_user_id === user.id
+        ).length;
 
-        // IMAGE COUNT
-        const imagesRes = await fetch(`${API_BASE_URL}/images/`, {
-          credentials: "include",
-        });
-
-        if (imagesRes.ok) {
-          const images = await imagesRes.json();
-          setImagesCount(
-            images.filter((img) => img.uploader_user_id === user.id).length
-          );
-        }
+        setAlbumsCount(userAlbumsCount);
+        setImagesCount(userImagesCount);
       } catch (err) {
         console.error("Failed to load counts:", err);
       }
@@ -79,7 +72,9 @@ export function UserDataProvider({ children }) {
     <UserDataContext.Provider
       value={{
         user,
+        setUser, // Expose setUser to consumers
         albumsCount,
+        setAlbumsCount,
         imagesCount,
         darkMode,
         setDarkMode,

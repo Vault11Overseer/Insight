@@ -31,10 +31,13 @@ export const healthCheck = async () => {
 // AUTH
 // AUTH LOGIN
 export const login = async (email, password) => {
+  const formData = new FormData();
+  formData.append("email", email);
+  formData.append("password", password);
+
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: formData,
   });
 
   if (!res.ok) {
@@ -43,9 +46,8 @@ export const login = async (email, password) => {
   }
 
   const data = await res.json();
-  // SAVE USER LOCALLY FOR SESSION MANAGEMENT
-  localStorage.setItem("user", JSON.stringify(data.user));
-  return data.user;
+  const userWithToken = { ...data.user, accessToken: data.accessToken };
+  return userWithToken;
 };
 
 // GALLERY
@@ -89,9 +91,12 @@ export const uploadImage = async (file, title, description, albumIds = [], userT
   if (albumIds.length > 0) formData.append("album_ids", albumIds.join(","));
   if (userTags.length > 0) formData.append("user_tags", userTags.join(","));
 
+  const headers = getAuthHeaders();
+  delete headers["Content-Type"]; // Let browser set boundary for FormData
+
   const res = await fetch(`${API_BASE_URL}/images/`, {
     method: "POST",
-    credentials: "include",
+    headers,
     body: formData,
   });
 
