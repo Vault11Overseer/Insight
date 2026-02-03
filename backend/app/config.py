@@ -1,8 +1,12 @@
 # backend/app/config.py
+# APP config
+
+# IMPORTS
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # Load .env into environment variables
+# LOAD FROM .ENV
+load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:

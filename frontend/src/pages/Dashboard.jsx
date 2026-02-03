@@ -1,7 +1,6 @@
 // frontend/src/pages/Dashboard.jsx
-// DONE
-
 // DASHBOARD
+
 // IMPORTS
 import { Images, ImageUp, LibraryBig, GalleryVerticalEnd } from "lucide-react";
 import Header from "../components/module/Header";
@@ -47,7 +46,7 @@ export default function Dashboard() {
             <LibraryBig size={30} className={`${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"  }`}/> Albums
           </h2>
           <hr className={`my-4 w-full border-t-2 border-black-500 ${darkMode ? "border-white" : "border-black"}`}/>
-          <h6 className="w-[85%] text-center font-bold">Create, View, Update, and Delete your own personal albums, and view others' albums.</h6>
+          <h6 className="w-[85%] text-center font-bold">Create, View, Update, and Delete your albums.</h6>
         </Link>
 
           {/* PERSONAL IMAGES */}

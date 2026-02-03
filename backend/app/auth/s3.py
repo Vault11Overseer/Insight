@@ -42,36 +42,43 @@ def get_s3_url(s3_key: str) -> str:
 # FILE UPLOAD TO S3 BUCKET
 def upload_file_to_s3(
     file: UploadFile,
-    user_id: int,
-    folder: Optional[str] = None
+    *,
+    s3_prefix: str,
+    filename: Optional[str] = None,
 ) -> tuple[str, str]:
     """
-    Upload a file to S3. Returns (s3_key, s3_url).
-    User files: folder=None -> uploads/
-    Default ALBUM images: folder="defaultImages/"
+    Upload a file to S3 using an explicit prefix.
+    Returns (s3_key, s3_url).
+
+    Example prefixes:
+      - gallery/originals/
+      - gallery/previews/
+      - album_images/<album_id>/
+      - avatars/
     """
     file_extension = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-    prefix = folder or f"uploads/{user_id}/"
-    if not prefix.endswith("/"):
-        prefix += "/"
+    object_name = filename or f"{uuid4()}.{file_extension}"
 
-    file_key = f"{prefix}{uuid4()}.{file_extension}"
+    if not s3_prefix.endswith("/"):
+        s3_prefix += "/"
+
+    s3_key = f"{s3_prefix}{object_name}"
     content_type = getattr(file, "content_type", None) or "application/octet-stream"
-    
+
     _, bucket = _get_aws_config()
 
     try:
         get_s3_client().upload_fileobj(
             file.file,
             bucket,
-            file_key,
-            ExtraArgs={"ContentType": content_type}
+            s3_key,
+            ExtraArgs={"ContentType": content_type},
         )
     except Exception as e:
         raise Exception(f"S3 upload failed: {e}")
 
-    s3_url = get_s3_url(file_key)
-    return file_key, s3_url
+    return s3_key, get_s3_url(s3_key)
+
 
 
 

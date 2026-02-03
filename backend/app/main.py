@@ -1,4 +1,7 @@
 # backend/app/main.py
+# MAIN APP
+
+# IMPORTS
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -6,19 +9,16 @@ from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 from app.database.db import get_db
 
-# =========================
 # APP INIT
-# =========================
 app = FastAPI(title="Insight API", debug=True)
 
-# =========================
 # CORS CONFIGURATION
-# =========================
 origins = [
     "http://localhost:5173",
     "https://insight-cish.onrender.com",
 ]
 
+# CORS MIDDLEWARE
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -27,9 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# =========================
 # ROOT & HEALTH ENDPOINT
-# =========================
 @app.get("/")
 def root(db: Session = Depends(get_db)):
     db_status = "disconnected"
@@ -44,9 +42,7 @@ def root(db: Session = Depends(get_db)):
         "database": db_status,
     }
 
-# =========================
 # IMPORT ROUTERS
-# =========================
 from app.routes.albums import router as albums_router
 from app.routes.gallery import router as gallery_router
 from app.routes.health import router as health_router
@@ -56,9 +52,7 @@ from app.routes.share_links import router as share_links_router
 from app.routes.favorites import router as favorites_router
 from app.auth import dev_auth
 
-# =========================
 # INCLUDE ROUTERS
-# =========================
 app.include_router(dev_auth.router)
 app.include_router(users_router)
 app.include_router(albums_router)
@@ -68,9 +62,7 @@ app.include_router(share_links_router)
 app.include_router(favorites_router)
 app.include_router(health_router)
 
-# =========================
 # STARTUP EVENT
-# =========================
 from app.utils.startup import ensure_gallery_exists
 
 @app.on_event("startup")

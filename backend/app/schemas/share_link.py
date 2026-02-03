@@ -7,15 +7,13 @@ from typing import Optional
 from datetime import datetime
 from enum import Enum
 
-
+# CLASS RESOURCE TYPE
 class ResourceType(str, Enum):
     image = "image"
     album = "album"
 
 
-# =========================
 # CREATE SHARE LINK
-# =========================
 class ShareLinkCreate(BaseModel):
     resource_type: ResourceType
     resource_id: int
@@ -23,9 +21,7 @@ class ShareLinkCreate(BaseModel):
     watermark_enabled: bool = False
 
 
-# =========================
 # READ SHARE LINK
-# =========================
 class ShareLinkRead(BaseModel):
     id: int
     resource_type: ResourceType
@@ -42,12 +38,7 @@ class ShareLinkRead(BaseModel):
         from_attributes = True
 
 
-
-
-# =========================
 # UPDATE SHARE LINK
-# =========================
-
 class ShareLinkUpdate(BaseModel):
     watermark_enabled: Optional[bool] = None
     expires_at: Optional[datetime] = None

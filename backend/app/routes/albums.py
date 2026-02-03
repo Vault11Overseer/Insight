@@ -1,16 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+# backend/app/routes/albums.py
+# ALBUM ROUTE
+
+# IMPORTS
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
 from app.database.db import get_db
 from app.models.album import Album
 from app.models.user import User
 from app.schemas.album import AlbumCreate, AlbumRead, AlbumUpdate
 from app.auth.dev_auth import get_current_user
 
+# ROUTER
 router = APIRouter(prefix="/albums", tags=["Albums"])
 
-
+# FORMAT ALBUM
 def format_album(album: Album) -> AlbumRead:
     return AlbumRead(
         id=album.id,
@@ -23,31 +27,39 @@ def format_album(album: Album) -> AlbumRead:
         image_ids=[img.id for img in album.images],
     )
 
-
+# GET ALBUMS
 @router.get("/", response_model=List[AlbumRead])
 def list_albums(db: Session = Depends(get_db)):
     albums = db.query(Album).all()
     return [format_album(a) for a in albums]
 
-
+# CREATE ALBUM
 @router.post("/", response_model=AlbumRead)
 def create_album(
-    data: AlbumCreate,
+    title: str = Form(...),
+    description: Optional[str] = Form(None),
+    default_image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     album = Album(
-        title=data.title,
-        description=data.description,
+        title=title,
+        description=description,
         owner_user_id=current_user.id,
         is_master=False,
     )
+
+    # (Optional) later: handle image upload here
+    # if default_image:
+    #     upload to S3 / local / etc
+
     db.add(album)
     db.commit()
     db.refresh(album)
     return format_album(album)
 
 
+# GET SINGLE ALBUM
 @router.get("/{album_id}", response_model=AlbumRead)
 def get_album(album_id: int, db: Session = Depends(get_db)):
     album = db.get(Album, album_id)
@@ -55,7 +67,7 @@ def get_album(album_id: int, db: Session = Depends(get_db)):
         raise HTTPException(404, "Album not found")
     return format_album(album)
 
-
+# UPDATE ALBUM
 @router.put("/{album_id}", response_model=AlbumRead)
 def update_album(
     album_id: int,
@@ -79,7 +91,7 @@ def update_album(
     db.refresh(album)
     return format_album(album)
 
-
+# DELETE ALBUM
 @router.delete("/{album_id}")
 def delete_album(
     album_id: int,

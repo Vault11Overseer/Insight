@@ -1,7 +1,10 @@
+# backend/app/routes/favorites.py
+# FAVORITE ROUTES
+
+# IMPORTS
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
 from app.database.db import get_db
 from app.models.image_favorite import ImageFavorite
 from app.models.user import User
@@ -9,13 +12,11 @@ from app.models.image import Image
 from app.schemas.image import ImageRead
 from app.auth.dev_auth import get_current_user
 from app.routes.images import format_image
-
+# ROUTER
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
 
 
-# =========================
 # LIST USER'S FAVORITES
-# =========================
 @router.get("/", response_model=List[ImageRead])
 def list_favorites(
     db: Session = Depends(get_db),
@@ -34,9 +35,7 @@ def list_favorites(
     return [format_image(img) for img in images]
 
 
-# =========================
 # ADD IMAGE TO FAVORITES
-# =========================
 @router.post("/{image_id}")
 def add_favorite(
     image_id: int,
@@ -71,9 +70,7 @@ def add_favorite(
     return {"detail": "Image added to favorites"}
 
 
-# =========================
 # REMOVE IMAGE FROM FAVORITES
-# =========================
 @router.delete("/{image_id}")
 def remove_favorite(
     image_id: int,
@@ -99,9 +96,7 @@ def remove_favorite(
     return {"detail": "Image removed from favorites"}
 
 
-# =========================
 # CHECK IF IMAGE IS FAVORITED
-# =========================
 @router.get("/{image_id}/check")
 def check_favorite(
     image_id: int,

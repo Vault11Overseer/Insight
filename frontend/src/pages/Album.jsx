@@ -1,4 +1,5 @@
 // frontend/src/pages/Album.jsx
+// ALBUM
 
 // IMPORTS
 import React, { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ import { LibraryBig } from "lucide-react";
 import defaultAlbumImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
 
+// EXPORT
 export default function Albums() {
   // USER STATE
   const [albums, setAlbums] = useState([]);
@@ -23,11 +25,7 @@ export default function Albums() {
   const { user: currentUser, darkMode, setDarkMode } = useUserData();
   const navigate = useNavigate();
 
-  // =========================
-  // EFFECTS
-  // =========================
-
-  
+// FETCH ALBUMS  
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
@@ -45,9 +43,7 @@ export default function Albums() {
     fetchAlbums();
   }, []);
 
-  // =========================
-  // HELPERS
-  // =========================
+  // CHECK IF USER CAN EDIT ALBUM
   const canEdit = (album) =>
     album.owner_user_id === currentUser?.id ||
     currentUser?.role === "admin";
@@ -56,6 +52,7 @@ export default function Albums() {
     navigate(`/albums/${album.id}`);
   };
 
+  // DELETE ALBUM
   const handleDeleteAlbum = async (album) => {
     if (!window.confirm(`Delete "${album.title}"?`)) return;
 
@@ -71,11 +68,13 @@ export default function Albums() {
     }
   };
 
+  // IMAGE UPDATE
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setCoverImage(file);
       // Create preview URL
+      // CREATE PREVIEW URL
       const reader = new FileReader();
       reader.onloadend = () => {
         setCoverImagePreview(reader.result);
@@ -95,9 +94,7 @@ export default function Albums() {
     if (fileInput) fileInput.value = "";
   };
 
-  // =========================
   // CREATE ALBUM
-  // =========================
   const handleCreateAlbum = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -117,7 +114,7 @@ export default function Albums() {
 
       const res = await fetch(`${API_BASE_URL}/albums/`, {
         method: "POST",
-        body: formData, // multipart/form-data
+        body: formData,  
       });
 
       if (!res.ok) {
@@ -144,33 +141,27 @@ export default function Albums() {
   if (loading) return <p className="p-8">Loading albums…</p>;
 
   console.log(albums)
-  // =========================
+
+
   // RENDER
-  // =========================
   return (
-    <div
-      className={`min-h-screen p-8 transition-colors duration-300 ${
-        darkMode ? "bg-black text-white" : "bg-white text-black"
-      }`}
-    >
+
+    // ALBUM CONTAINER
+    <div className={`page-set ${ darkMode ? "page-set-dark" : "page-set-light" }`}>
+
       {/* HEADER */}
-      <Header
-        navigationProps={{
-          toggleDarkMode: () => setDarkMode((prev) => !prev),
-        }}
-      />
+      <Header navigationProps={{ toggleDarkMode: () => setDarkMode((prev) => !prev) }} />
 
       {/* PAGE HEADER */}
       <div className="flex items-center gap-2 mt-10 mb-6">
-        <LibraryBig size={32} />
+      <LibraryBig size={30} className={`${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"  }`}/>
         <h1 className="text-4xl font-semibold">Albums</h1>
-        <p className="text-1xl opacity-80 mt-2">
-          Manage your personal albums.
-        </p>
+        <p className="text-1xl opacity-90 mt-2 font-bold">Manage your personal albums.</p>
       </div>
 
       {/* CREATE ALBUM FORM */}
-      <section className="my-10 w-full">
+      <section className={`bg-set ${darkMode ? "bg-set-dark" : "bg-set-light" }`}>
+
         <form
           onSubmit={handleCreateAlbum}
           className={`p-6 rounded-2xl shadow space-y-4 ${

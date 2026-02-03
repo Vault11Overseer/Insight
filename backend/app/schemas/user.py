@@ -1,11 +1,13 @@
+# backend/app/schemas/user.py
+# USER SCHEMA
+
+# IMPORTS
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, Dict
 from datetime import datetime
 
 
-# =========================
 # CREATE USER
-# =========================
 class UserCreate(BaseModel):
     username: str
     email: EmailStr
@@ -25,9 +27,7 @@ class UserCreate(BaseModel):
         return v
 
 
-# =========================
 # READ USER
-# =========================
 class UserRead(BaseModel):
     id: int
     username: str
@@ -45,9 +45,7 @@ class UserRead(BaseModel):
         from_attributes = True
 
 
-# =========================
 # UPDATE USER
-# =========================
 class UserUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[EmailStr] = None

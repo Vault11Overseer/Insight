@@ -1,9 +1,12 @@
+# backend/app/routes/images.py
+# IMAGES
+
+# IMPORTS
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from uuid import uuid4
 import re
-
 from app.database.db import get_db
 from app.models.image import Image
 from app.models.user import User
@@ -11,26 +14,18 @@ from app.models.tag import Tag
 from app.models.album import Album
 from app.schemas.image import ImageRead, ImageUpdate
 from app.auth.dev_auth import get_current_user
-from app.auth.s3 import (
-    upload_file_to_s3,
-    delete_s3_object,
-    get_s3_url,
-    rekognition_detect_labels,
-)
-
+from app.auth.s3 import (upload_file_to_s3, delete_s3_object, get_s3_url, rekognition_detect_labels,)
+# ROUTE
 router = APIRouter(prefix="/images", tags=["Images"])
 
 
-# --------------------------------------------------
-# HELPERS
-# --------------------------------------------------
-
+# SANATIZE NAMES
 def sanitize_name(value: str) -> str:
     value = value.lower().strip()
     value = re.sub(r"[^a-z0-9_-]+", "_", value)
     return value
 
-
+# FORMAT IMAGE
 def format_image(image: Image) -> ImageRead:
     return ImageRead(
         id=image.id,
@@ -61,9 +56,7 @@ def format_image(image: Image) -> ImageRead:
     )
 
 
-# --------------------------------------------------
-# LIST ALL IMAGES (Gallery)
-# --------------------------------------------------
+# LIST ALL IMAGES (GALLERY)
 @router.get("/", response_model=List[ImageRead])
 def list_images(
     db: Session = Depends(get_db),
@@ -81,9 +74,7 @@ def list_images(
     return [format_image(img) for img in images]
 
 
-# --------------------------------------------------
 # LIST CURRENT USER IMAGES
-# --------------------------------------------------
 @router.get("/user", response_model=List[ImageRead])
 def list_user_images(
     db: Session = Depends(get_db),
@@ -95,9 +86,7 @@ def list_user_images(
     return [format_image(img) for img in images]
 
 
-# --------------------------------------------------
 # GET SINGLE IMAGE
-# --------------------------------------------------
 @router.get("/{image_id}", response_model=ImageRead)
 def get_image(
     image_id: int,
@@ -110,9 +99,7 @@ def get_image(
     return format_image(image)
 
 
-# --------------------------------------------------
 # CREATE IMAGE
-# --------------------------------------------------
 @router.post("/", response_model=ImageRead)
 async def create_image(
     file: UploadFile = File(...),
@@ -123,7 +110,7 @@ async def create_image(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # Build S3 path
+    # BUILD S3 PATH
     first = sanitize_name(current_user.first_name or "user")
     last = sanitize_name(current_user.last_name or str(current_user.id))
     folder = f"uploads/{first}_{last}/"
@@ -141,7 +128,7 @@ async def create_image(
     db.add(image)
     db.flush()
 
-    # Albums
+    # ALBUMS
     if album_ids:
         for album_id in map(int, album_ids.split(",")):
             album = db.get(Album, album_id)
@@ -151,7 +138,7 @@ async def create_image(
                 continue
             image.albums.append(album)
 
-    # User tags
+    # USER TAGS
     if user_tags:
         for raw in user_tags.split(","):
             name = raw.strip().lower()
@@ -163,7 +150,7 @@ async def create_image(
                 db.add(tag)
             image.tags.append(tag)
 
-    # AWS Rekognition
+    # AWS REKOGNITION
     try:
         labels = rekognition_detect_labels(s3_key)
         image.image_metadata["aws"] = {"labels": labels}
@@ -184,9 +171,7 @@ async def create_image(
     return format_image(image)
 
 
-# --------------------------------------------------
 # UPDATE IMAGE
-# --------------------------------------------------
 @router.put("/{image_id}", response_model=ImageRead)
 def update_image(
     image_id: int,
@@ -209,9 +194,7 @@ def update_image(
     return format_image(image)
 
 
-# --------------------------------------------------
 # DELETE IMAGE
-# --------------------------------------------------
 @router.delete("/{image_id}")
 def delete_image(
     image_id: int,

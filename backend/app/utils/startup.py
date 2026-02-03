@@ -2,9 +2,11 @@
 # KEEP THIS FILE
 # STARTUP
 
+# IMPORTS
 from sqlalchemy.orm import Session
 from app.database.db import SessionLocal
 
+# ENSURE GALLERY EXISIS
 def ensure_gallery_exists():
     """
     Gallery is now a virtual collection - all images are automatically in the Gallery.

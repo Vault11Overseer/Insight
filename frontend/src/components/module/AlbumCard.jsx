@@ -1,4 +1,8 @@
-import React from "react";
+// frontend/src/components/module/AlbumCard.jsx
+// ALBUM CARD
+
+// IMPORTS
+// import React from "react";
 import { Image, User, Trash2, Pencil } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 import { useNavigate } from "react-router-dom";

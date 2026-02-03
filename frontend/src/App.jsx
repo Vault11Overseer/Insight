@@ -1,5 +1,4 @@
 // frontend/src/App.jsx
-// DONE
 
 // APP
 // IMPORTS

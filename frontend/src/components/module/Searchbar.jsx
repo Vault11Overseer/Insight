@@ -1,7 +1,6 @@
 // frontend/src/components/module/submodule/Searchbar.jsx
-//DONE
-
 // SEARCH BAR
+
 // IMPORTS
 import { Search as SearchIcon } from "lucide-react";
 

@@ -1,6 +1,6 @@
 // frontend/src/pages/Upload.jsx
-
 // UPLOADS
+
 // IMPORTS
 import React, { useState, useEffect } from "react";
 import Header from "../components/module/Header";
@@ -11,9 +11,10 @@ import {ImageUp} from "lucide-react"
 
 // EXPORTS
 export default function Upload() {
-  // STATE
+  // USER STATE
   const { user: currentUser, darkMode, setDarkMode } = useUserData();
   const [title, setTitle] = useState("");
+  // IMAGE STATE
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);

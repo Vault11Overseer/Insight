@@ -1,7 +1,6 @@
 // frontend/src/main.jsx
-// DONE
-
 // MAIN
+
 // IMPORTS
 import React from "react";
 import ReactDOM from "react-dom/client";

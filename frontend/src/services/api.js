@@ -1,9 +1,10 @@
+// frontend/src/services/api.js
 // API
+
+// EXPORT
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// =========================
 // AUTH HEADERS
-// =========================
 function getAuthHeaders() {
   const user =
     JSON.parse(localStorage.getItem("user") || "null") ||
@@ -15,9 +16,7 @@ function getAuthHeaders() {
   };
 }
 
-// =========================
 // HEALTH CHECK
-// =========================
 export const healthCheck = async () => {
   try {
     const res = await fetch(`${API_BASE_URL}/health`);
@@ -29,9 +28,8 @@ export const healthCheck = async () => {
   }
 };
 
-// =========================
 // AUTH
-// =========================
+// AUTH LOGIN
 export const login = async (email, password) => {
   const res = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
@@ -45,14 +43,13 @@ export const login = async (email, password) => {
   }
 
   const data = await res.json();
-  // Save user locally for session management
+  // SAVE USER LOCALLY FOR SESSION MANAGEMENT
   localStorage.setItem("user", JSON.stringify(data.user));
   return data.user;
 };
 
-// =========================
 // GALLERY
-// =========================
+// GET GALLERY
 export const getGallery = async (skip = 0, limit = 100, search = null) => {
   const params = new URLSearchParams({ skip, limit });
   if (search) params.append("search", search);
@@ -64,9 +61,8 @@ export const getGallery = async (skip = 0, limit = 100, search = null) => {
   return res.json();
 };
 
-// =========================
 // IMAGES
-// =========================
+// GET ALL IMAGES
 export const getImages = async (skip = 0, limit = 100) => {
   const params = new URLSearchParams({ skip, limit });
   const res = await fetch(`${API_BASE_URL}/images?${params}`, {
@@ -76,6 +72,7 @@ export const getImages = async (skip = 0, limit = 100) => {
   return res.json();
 };
 
+// GET SINGLE IMAGE
 export const getImage = async (imageId) => {
   const res = await fetch(`${API_BASE_URL}/images/${imageId}`, {
     headers: getAuthHeaders(),
@@ -165,12 +162,21 @@ export const getAlbumImages = async (albumId) => {
   return res.json();
 };
 
-export const createAlbum = async (title, description = null) => {
+export const createAlbum = async (title, description = null, defaultImage = null) => {
+  const formData = new FormData();
+  formData.append("title", title);
+  if (description) formData.append("description", description);
+  if (defaultImage) formData.append("default_image", defaultImage);
+
+  const headers = getAuthHeaders();
+  delete headers["Content-Type"]; // Let browser set the boundary for FormData
+
   const res = await fetch(`${API_BASE_URL}/albums/`, {
     method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ title, description }),
+    headers,
+    body: formData,
   });
+
   if (!res.ok) throw new Error("Failed to create album");
   return res.json();
 };

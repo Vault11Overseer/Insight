@@ -1,19 +1,20 @@
+# backend/app/routes/users.py
+# USERS ROUTES
+
+# IMPORTS
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-
 from app.database.db import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserRead, UserUpdate
 from app.utils.auth import hash_password
 from app.auth.dev_auth import get_current_user
-
+# ROUTE
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-# =========================
 # LIST USERS (ADMIN)
-# =========================
 @router.get("/", response_model=List[UserRead])
 def list_users(
     db: Session = Depends(get_db),
@@ -25,9 +26,7 @@ def list_users(
     return db.query(User).all()
 
 
-# =========================
 # CREATE USER (ADMIN)
-# =========================
 @router.post("/", response_model=UserRead)
 def create_user(
     data: UserCreate,
@@ -55,9 +54,7 @@ def create_user(
     return user
 
 
-# =========================
 # READ USER
-# =========================
 @router.get("/{user_id}", response_model=UserRead)
 def get_user(
     user_id: int,
@@ -74,9 +71,7 @@ def get_user(
     return user
 
 
-# =========================
 # UPDATE USER
-# =========================
 @router.put("/{user_id}", response_model=UserRead)
 def update_user(
     user_id: int,
@@ -104,9 +99,7 @@ def update_user(
     return user
 
 
-# =========================
 # DELETE USER (ADMIN)
-# =========================
 @router.delete("/{user_id}")
 def delete_user(
     user_id: int,

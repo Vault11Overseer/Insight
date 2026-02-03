@@ -1,10 +1,8 @@
 // frontend/src/components/module/submodule/Intro.jsx
-// DONE
-
 // INTRO
+
 // IMPORTS
 import { useUserData } from "../../../services/UserDataContext";
-
 
 // EXPORT INTRO
 export default function Intro() {

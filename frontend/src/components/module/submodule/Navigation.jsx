@@ -1,13 +1,12 @@
 // frontend/src/components/module/submodule/Navigation.jsx
-// DONE
-
 // NAVIGATION
+
 // IMPORTS
 import { useLocation, useNavigate } from "react-router-dom";
 import { Settings, Sun, Moon, ArrowLeft } from "lucide-react";
 import { useUserData } from "../../../services/UserDataContext";
 
-// EXPORT
+// EXPORT NAVIGATION
 export default function Navigation({ toggleDarkMode }) {
   // STATE
   const { darkMode } = useUserData();

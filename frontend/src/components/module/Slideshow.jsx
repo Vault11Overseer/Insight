@@ -1,7 +1,6 @@
 // frontend/src/components/module/Slideshow.jsx
-// DONE
-
 // SLIDESHOW
+
 // IMPORT
 import React, { useState, useEffect } from "react";
 

@@ -1,26 +1,23 @@
 # backend/app/routes/share_links.py
+# SHARE LINK ROUTES
 
+# IMPORTS
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import secrets
 from datetime import datetime, timezone
-
 from app.database.db import get_db
 from app.models.share_link import ShareLink, ResourceType
 from app.models.user import User
 from app.models.image import Image
 from app.models.album import Album
-from app.schemas.share_link import (
-    ShareLinkCreate,
-    ShareLinkRead,
-    ShareLinkUpdate
-)
+from app.schemas.share_link import (ShareLinkCreate, ShareLinkRead, ShareLinkUpdate)
 from app.auth.dev_auth import get_current_user
-
+# ROUTE
 router = APIRouter(prefix="/share-links", tags=["Share Links"])
 
-
+# GET SHARE LINK
 @router.get("/", response_model=List[ShareLinkRead])
 def list_share_links(
     db: Session = Depends(get_db),
@@ -33,7 +30,7 @@ def list_share_links(
         ShareLink.owner_user_id == current_user.id
     ).all()
 
-
+# READ SHARE LINK
 @router.post("/", response_model=ShareLinkRead)
 def create_share_link(
     data: ShareLinkCreate,
@@ -75,7 +72,7 @@ def create_share_link(
     db.refresh(share_link)
     return share_link
 
-
+# GET SHARE LINK BY TOKEN
 @router.get("/token/{token}", response_model=ShareLinkRead)
 def get_share_link_by_token(
     token: str,
@@ -91,6 +88,7 @@ def get_share_link_by_token(
     return link
 
 
+# SHARE LINK BY ID
 @router.put("/{link_id}", response_model=ShareLinkRead)
 def update_share_link(
     link_id: int,
@@ -114,7 +112,7 @@ def update_share_link(
     db.refresh(link)
     return link
 
-
+# DELETE SHARE LINK
 @router.delete("/{link_id}")
 def delete_share_link(
     link_id: int,
