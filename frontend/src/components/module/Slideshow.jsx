@@ -24,64 +24,66 @@ export const introSlides = [
 ];
 
 // EXPORT SLIDESHOW
-export default function Slideshow({ slides = [], darkMode = true, containerHeight = "80vh" }) {
-  // STATE
+export default function Slideshow({
+  slides = [],
+  darkMode = true,
+  containerHeight = "80vh",
+}) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { image, title, subtitle } = slides[currentIndex];
 
-  // SLIDESHOW TRANSITION EFFECT
+  // AUTO-ROTATE SLIDES
   useEffect(() => {
+    if (!slides.length) return;
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slides.length);
     }, 4000);
+
     return () => clearInterval(interval);
-  }, [slides.length]);
+  }, [slides]);
 
-  if (!slides.length) return null;
+  // SAFETY GUARD
+  if (!slides.length || !slides[currentIndex]) return null;
 
-// RETURN
+  const { image, title, subtitle } = slides[currentIndex];
+
   return (
-
-    // SLIDESHOW CONTAINER
     <div
-      className="relative w-full h-full overflow-hidden"
-      // style={{ height: containerHeight }} // lock container height
+      className="slideshow-container"
+      // style={{ height: containerHeight }}
     >
-      {/* IMAGE FILL */}
+      {/* SLIDE IMAGE */}
       <img
         src={image}
         alt={`slide-${currentIndex}`}
-        className="absolute top-0 left-0 w-full h-full object-cover"
+        className="slideshow-image"
       />
 
       {/* LOGO */}
       <div
-        className={`absolute top-5 left-5 px-3 py-3 rounded-lg font-bold text-lg shadow-lg px-5  ${
-          darkMode ? "bg-gradient-to-r from-slate-200 via-zinc-200 to-slate-300 text-black" : "bg-gradient-to-r from-slate-900 via-slate-600 to-zinc-900 text-white" 
+        className={`slideshow-overlay slideshow-logo ${
+          darkMode
+            ? "slideshow-overlay-dark"
+            : "slideshow-overlay-light"
         }`}
       >
-        {/* Logo Image */}
         <img
           src="/bci-favicon-green.ico"
-          alt="Logo"
+          alt="BCI Logo"
           className="inline-block w-6 h-6 mr-2 align-middle"
         />
-        {/* Text */}
         INSIGHT - BCI Media.
       </div>
 
       {/* CAPTION */}
-      <div className={`w-[65%] absolute bottom-10 left-1/2 -translate-x-1/2 text-center rounded-lg ${
-          darkMode ? "bg-gradient-to-r from-slate-200 via-zinc-200 to-slate-300 text-black" : "bg-gradient-to-r from-slate-900 via-slate-600 to-zinc-900 text-white" 
-        }`}>
-      
-      
-      
-        <p
-          className={`px-3 py-4 font-bold text-lg  ${
-            darkMode ? "text-black" : "text-white"
-          }`}
-        >
+      <div
+        className={`slideshow-overlay slideshow-caption ${
+          darkMode
+            ? "slideshow-overlay-dark"
+            : "slideshow-overlay-light"
+        }`}
+      >
+        <p className="slideshow-text">
           {title}
           <br />
           {subtitle}
@@ -89,16 +91,16 @@ export default function Slideshow({ slides = [], darkMode = true, containerHeigh
       </div>
 
       {/* DOTS */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+      <div className="slideshow-dots">
         {slides.map((_, idx) => (
           <span
             key={idx}
-            className={`w-2 h-2 rounded-full ${
+            className={`slideshow-dot ${
               idx === currentIndex
-                ? "bg-[#BDD63B]" // ACTIVE
-                : "bg-gray-400" 
+                ? "slideshow-dot-active"
+                : "slideshow-dot-inactive"
             }`}
-          ></span>
+          />
         ))}
       </div>
     </div>

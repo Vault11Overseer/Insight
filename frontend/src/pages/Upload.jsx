@@ -7,14 +7,13 @@ import Header from "../components/module/Header";
 import { API_BASE_URL } from "../services/api";
 import defaultImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
-import {ImageUp} from "lucide-react"
+import { ImageUp } from "lucide-react";
 
 // EXPORTS
 export default function Upload() {
   // USER STATE
   const { user: currentUser, darkMode, setDarkMode } = useUserData();
   const [title, setTitle] = useState("");
-  // IMAGE STATE
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -62,73 +61,62 @@ export default function Upload() {
 
   // UPLOAD IMAGE HANDLER
   const handleUpload = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  // IS USER LOGGED IN
-  if (!currentUser) {
-    alert("You must be logged in to upload images.");
-    return;
-  }
-  // VALIDATION
-  if (!title.trim()) return alert("Title is required");
-  if (!description.trim()) return alert("Description is required");
-  if (!imageFile) return alert("Image file is required");
-  if (!userTags.trim()) return alert("Please provide at least one tag");
+    if (!currentUser) {
+      alert("You must be logged in to upload images.");
+      return;
+    }
 
-  setLoading(true);
-  // TRY / EXCEPT
+    if (!title.trim()) return alert("Title is required");
+    if (!description.trim()) return alert("Description is required");
+    if (!imageFile) return alert("Image file is required");
+    if (!userTags.trim()) return alert("Please provide at least one tag");
+
+    setLoading(true);
     try {
-      // BACKEND FIELD NAMES: THE BACKEND EXPECTS THESE SPECIFIC FORM FIELD NAMES
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
-      // BACKEND EXPECTS THE FILE FIELD TO BE NAMED `file`
       formData.append("file", imageFile);
-      // USER TAGS AS A COMMA-SEPARATED STRING
       formData.append("user_tags", userTags);
+      if (albumId) formData.append("album_ids", albumId);
 
-      // BACKEND EXPECTS COMMA-SEPARATED ALBUM IDS IN `album_ids`
-      if (albumId) {
-        formData.append("album_ids", albumId);
+      const res = await fetch(`${API_BASE_URL}/images/`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || "Failed to upload image");
       }
 
-    const res = await fetch(`${API_BASE_URL}/images/`, {
-      method: "POST",
-      credentials: "include", // ✅ IMPORTANT
-      body: formData,
-    });
+      const newImage = await res.json();
+      setRecentUploads((prev) => [newImage, ...prev]);
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || "Failed to upload image");
+      // RESET FORM
+      setTitle("");
+      setDescription("");
+      setImageFile(null);
+      setImagePreview(null);
+      setUserTags("");
+      setAlbumId("");
+
+      const input = document.getElementById("image-input");
+      if (input) input.value = "";
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Upload failed");
+    } finally {
+      setLoading(false);
     }
-
-    const newImage = await res.json();
-
-    setRecentUploads((prev) => [newImage, ...prev]);
-
-    // RESET FORM
-    setTitle("");
-    setDescription("");
-    setImageFile(null);
-    setImagePreview(null);
-    setUserTags("");
-    setAlbumId("");
-
-    const input = document.getElementById("image-input");
-    if (input) input.value = "";
-  } catch (err) {
-    console.error(err);
-    alert(err.message || "Upload failed");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // UPDATE EXISTING IMAGE
   const handleUpdateImage = async (imageId, updates) => {
     try {
-      // The backend `PUT /images/{id}` expects JSON body (ImageUpdate schema).
       const payload = {};
       if (updates.title) payload.title = updates.title;
       if (updates.description) payload.description = updates.description;
@@ -143,7 +131,9 @@ export default function Upload() {
       if (!res.ok) throw new Error("Failed to update image");
 
       const updated = await res.json();
-      setRecentUploads((prev) => prev.map((img) => (img.id === updated.id ? updated : img)));
+      setRecentUploads((prev) =>
+        prev.map((img) => (img.id === updated.id ? updated : img))
+      );
     } catch (err) {
       console.error(err);
       alert(err.message || "Update failed");
@@ -153,27 +143,33 @@ export default function Upload() {
   // RENDER
   return (
     // UPLOAD CONTAINER
-    <div className={`page-set ${ darkMode ? "page-set-dark" : "page-set-light" }`}>
-
+    <div className={`page-set ${darkMode ? "page-set-dark" : "page-set-light"}`}>
+      
       {/* HEADER */}
       <Header navigationProps={{ toggleDarkMode: () => setDarkMode((prev) => !prev) }} />
 
       {/* PAGE HEADER */}
-      <div className="flex items-center gap-2 mt-10 mb-6">
-      <ImageUp size={30} className={`${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"  }`}/>
-        <h1 className="text-4xl font-semibold">Uploads</h1>
-        <p className="text-1xl opacity-90 mt-2 font-bold">
+      <div className="flex flex-col gap-2 mt-10 mb-6">
+        <div className="flex items-center gap-2">
+          <ImageUp size={38} className={darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"} />
+          <h1 className="text-4xl font-semibold">Uploads</h1>
+        </div>
+        <p className="text-lg opacity-90 font-bold">
           Upload your very own images.<br />
-          Add them to your albums now, or later but they all end up in the Gallery.
         </p>
       </div>
 
+      {/* PAGE HEADER */}
+      <div className="flex items-center gap-2 mt-10 mb-6">
+        <ImageUp size={38} className={`${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]" }`} />
+        <h1 className="text-4xl font-semibold">Albums</h1>
+        <p className="text-1xl opacity-90 mt-2 font-bold">Manage your personal albums.</p>
+      </div>
+
       {/* UPLOAD FORM */}
-      <section className={`bg-set ${darkMode ? "bg-set-dark" : "bg-set-light" }`}>
-        <form
-          onSubmit={handleUpload}
-          className="p-6 rounded-2xl space-y-4"
-        >
+      <section className={`form-container ${darkMode ? "form-dark" : "form-light"}`}>
+        <form onSubmit={handleUpload} className="space-y-4">
+
           {/* FORM HEADER */}
           <h2 className="text-xl font-semibold">Upload New Image</h2>
 
@@ -183,7 +179,7 @@ export default function Upload() {
             placeholder="Image Title (Required)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
+            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
             required
           />
 
@@ -192,7 +188,7 @@ export default function Upload() {
             placeholder="Image Description (Required)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
+            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
             rows={3}
             required
           />
@@ -203,15 +199,15 @@ export default function Upload() {
             placeholder="Image Tags (Comma-separated, at least one tag is Required)"
             value={userTags}
             onChange={(e) => setUserTags(e.target.value)}
-            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
+            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
             required
           />
 
-          {/* ALBUM COVER INPUT */}
+          {/* ALBUM SELECT */}
           <select
             value={albumId}
             onChange={(e) => setAlbumId(e.target.value)}
-            className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
+            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
           >
             <option value="">Add to Album (optional)</option>
             {albums.map((a) => (
@@ -220,61 +216,83 @@ export default function Upload() {
           </select>
 
           {/* IMAGE PREVIEW */}
-          <div className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
-
->
+          <div className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}>
             {imagePreview ? (
               <div className="relative">
-                <img src={imagePreview} alt="Preview" className="w-full h-48 object-contain rounded-lg border-2 border-gray-300" />
-                <button type="button" onClick={handleRemoveImage} className="absolute top-2 right-2 bg-red-500 hover:bg-red-700 hover:scale-105 text-white px-3 py-1 rounded text-sm">Remove</button>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-contain rounded-lg border-2 border-gray-300"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                >
+                  Remove
+                </button>
               </div>
             ) : (
-              <label htmlFor="image-input" className={"flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer"}>
+              <label
+                htmlFor="image-input"
+                className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer"
+              >
                 <div className="flex flex-col items-center justify-center text-center pt-5 pb-6 text-black">
-                  <p className="mb-2 text-sm text-xl text-center opacity-70">Click or drag & drop to upload your image.</p>
-                  <p>Accepted Image Typres: PNG, JPG, JPEG, SVG</p>
+                  <p className="mb-2 text-xl opacity-70">Click or drag & drop to upload your image.</p>
+                  <p>Accepted Image Types: PNG, JPG, JPEG, SVG</p>
                   <p>Upload File Size: 20 GIGS</p>
                 </div>
-                <input id="image-input" type="file" accept="image/*" onChange={handleImageChange} className="hidden" required />
+                <input
+                  id="image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
+                  required
+                />
               </label>
             )}
           </div>
 
           {/* UPLOAD IMAGE BUTTON */}
-          <button type="submit" className={`button-set ${ darkMode ? "button-set-dark" : "button-set-light" }`}>
+          <button
+            type="submit"
+            className={`button-set ${darkMode ? "button-set-dark" : "button-set-light"}`}
+          >
             Upload Image
           </button>
-
-          {/* FORM END */}
         </form>
       </section>
-
-
-
-
 
       {/* RECENT UPLOADS */}
       {recentUploads.length > 0 && (
         <section className="my-10 space-y-6">
           {recentUploads.map((img) => (
-            <div key={img.id} className={`p-6 rounded-2xl shadow space-y-4 ${darkMode ? "bg-[#BDD63B] text-black" : "bg-[#263248] text-white"}`}>
+            <div
+              key={img.id}
+              className={`p-6 rounded-2xl shadow space-y-4 ${darkMode ? "bg-set-dark text-black" : "bg-set-light text-white"}`}
+            >
               <h3 className="text-lg font-semibold">{img.title}</h3>
-              <img src={img.preview_url || defaultImage} alt={img.title} className="w-full h-48 object-contain rounded-lg" />
+              <img
+                src={img.preview_url || defaultImage}
+                alt={img.title}
+                className="w-full h-48 object-contain rounded-lg"
+              />
               <p>{img.description}</p>
               <p className="opacity-70">Tags: {img.user_tags?.join(", ")}</p>
               <p className="opacity-70">Album: {img.album_title || "None"}</p>
               <p className="opacity-70">Uploaded: {new Date(img.created_at).toLocaleString()}</p>
 
-              {/* Edit inline */}
+              {/* EDIT INLINE */}
               <button
                 onClick={() => {
                   const newTitle = prompt("New title", img.title) || img.title;
                   const newDescription = prompt("New description", img.description) || img.description;
-                  const newTags = prompt("Tags (comma-separated)", img.user_tags?.join(", ") || "") || "";
+                  const newTags = prompt("Tags (comma-separated)", img.user_tags?.join(",") || "") || "";
                   handleUpdateImage(img.id, {
                     title: newTitle,
                     description: newDescription,
-                    user_tags: newTags
+                    user_tags: newTags,
                   });
                 }}
                 className="px-4 py-1 rounded-full border border-white hover:bg-white hover:text-black transition"

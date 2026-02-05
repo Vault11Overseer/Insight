@@ -1,176 +1,235 @@
-/* APP.CSS */
-
-/* BUTTON */
-/* className={`button-set ${ darkMode ? "button-set-dark" : "button-set-light" }`} */
-
-/* INPUT */
-/* className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`} */
-
-/* PAGE BODY */
-/* <div className={`page-set ${ darkMode ? "page-set-dark" : "page-set-light" }`}> */
-
-/* TAILWINDS SETUP */
+/* =========================================================
+   TAILWIND SETUP
+========================================================= */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* GLOBAL */
-html, body {
-  margin: 0;
-  padding: 0;
+/* =========================================================
+   GLOBAL RESETS
+========================================================= */
+html, body { margin: 0; padding: 0;}
+
+@layer components {
+  .hr {height: 3px; border-radius:10px; border: none; margin-bottom:20px; margin:10px;}
+  .hr-dark { background-color: #bdd63b; }
+  .hr-light { background-color: #1e1c29; }
 }
 
 
-/* DARK / LIGHT - HOVER GLOBALS */
+
+/* LINKS */
 @layer components {
-  /* DARK / LIGHT BASE */
-  .bg-set-hover {
-    @apply w-full flex flex-col items-center p-6 rounded-2xl shadow-xl transition-transform duration-300 hover:scale-105;
-  }
+  .link { @apply font-medium underline cursor-pointer transition-transform duration-300 hover:scale-105; }
+  .link-dark { color: #bdd63b; }
+  .link-light { color: #1e1c29; }
+}
 
-  /* DARK MODE */
-  .bg-set-hover-dark {
-    @apply relative overflow-hidden border border-gray-100 rounded-2xl p-6 flex flex-col items-center 
-      hover:shadow-lg hover:shadow-gray-300/50 hover:saturate-150 text-white;
 
-    background: linear-gradient(to right, #262627, #4f4e4f, #262526); 
+/* SECTION HEADERS */
+@layer components { 
+  .section-header { @apply text-2xl font-semibold mt-8 mb-5 ; } 
+  /* .link-dark { color: white; }
+  .link-light { color: black; } */
+}
+
+
+/* =========================================================
+   PAGE GLOBALS - DONE
+========================================================= */
+@layer components {
+  .page-set {@apply min-h-screen p-8 transition-colors duration-300;}
+  .page-set-light {@apply bg-slate-100 text-black;}
+  .page-set-dark {@apply bg-black text-white;}
+}
+
+/* =========================================================
+   AUTH PAGE LAYOUT
+========================================================= */
+@layer components {
+  .auth-page {@apply min-h-screen flex items-center justify-center transition-colors duration-500;}
+  .auth-left {@apply w-1/2 hidden md:block;}
+  .auth-right {@apply w-full md:w-1/2 p-10 flex flex-col justify-center overflow-y-auto;}
+  .auth-container-dark {background: linear-gradient(to right, #262627, #4f4e4f, #262526);}
+  .auth-container-light {background: linear-gradient(to right, #d1d5db, #e4e4e7, #e4e4e7);}
+  .auth-container {
+    @apply flex w-[900px] max-w-full rounded-2xl shadow-2xl overflow-hidden transition-colors duration-500;
+    max-height: 90vh;
+  } 
+}
+/* =========================================================
+   AUTH HEADERS / TEXT
+========================================================= */
+@layer components {
+  .auth-header { @apply flex justify-between items-center mb-2; }
+  .auth-title { @apply text-2xl font-bold; }
+  .auth-subtext { @apply text-lg; }
+}
+/* =========================================================
+   AUTH TOGGLE BUTTON
+========================================================= */
+@layer components {
+  .theme-toggle { @apply w-12 h-12 flex items-center justify-center rounded-full transition-colors duration-300; }
+  .theme-toggle-dark { @apply bg-gray-300 text-black; }
+  .theme-toggle-light { @apply bg-black text-white; }
+}
+
+/* =========================================================
+   LAYOUT HELPERS
+========================================================= */
+@layer components {
+  .section-grid-2 { @apply grid grid-cols-1 md:grid-cols-2 gap-6 my-10; }
+  .section-full { @apply w-full; }
+}
+
+/* =========================================================
+   CARD BASE (SHARED)
+========================================================= */
+@layer components {
+  .card-base { @apply w-full flex flex-col items-center p-6 rounded-2xl transition-transform duration-300; }
+  .card-bordered-dark { @apply border border-gray-100 text-white; }
+  .card-bordered-light { @apply border border-gray-400 text-black; }
+}
+
+
+/* =========================================================
+   INTERACTIVE CARDS (LINKS — SHIMMER ENABLED)
+========================================================= */
+@layer components {
+  .card-interactive {@apply card-base shadow-xl hover:scale-105;}
+  .card-interactive-dark:hover, .card-interactive-light:hover { background-position: 100% 50%;}
+  .card-interactive-dark::before {background: linear-gradient(to right, transparent, rgba(9, 8, 8, 0.2), transparent);}
+  .card-interactive-light::before {background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.6), transparent);}
+  .card-interactive-dark:hover::before, .card-interactive-light:hover::before {transform: translateX(150%);}
+  .card-interactive-dark {
+    @apply card-bordered-dark relative overflow-hidden hover:shadow-lg hover:shadow-gray-300/50 hover:saturate-150;
+    background: linear-gradient(to right, #262627, #4f4e4f, #262526);
     background-size: 200% 200%;
     background-position: 0% 50%;
-    position: relative;
   }
 
-  .bg-set-hover-dark:hover {
-    background-position: 100% 50%; 
+  .card-interactive-light {
+    @apply card-bordered-light relative overflow-hidden hover:shadow-lg hover:shadow-zinc-300/50 hover:saturate-150;
+    background: linear-gradient(to right, #d1d5db, #e4e4e7, #e4e4e7);
+    background-size: 200% 200%;
+    background-position: 0% 50%;
   }
 
-  .bg-set-hover-dark::before {
-    content: '';
+  .card-interactive-dark::before, .card-interactive-light::before {
+    content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, transparent, rgba(9, 8, 8, 0.2), transparent);
     transform: translateX(-150%);
-    transition: transform 1.2s ease-in-out; 
-  }
-
-  .bg-set-hover-dark:hover::before {
-    transform: translateX(150%);
-  }
-
-  /* LIGHT MODE */
-  .bg-set-hover-light {
-    @apply relative overflow-hidden border border-gray-400 rounded-2xl p-6 flex flex-col items-center
-      hover:shadow-lg hover:shadow-zinc-300/50 hover:saturate-150 text-black;
-
-    background: linear-gradient(to right, #d1d5db, #e4e4e7, #e4e4e7); 
-    background-size: 200% 200%;
-    background-position: 0% 50%;
-    position: relative;
-  }
-
-  .bg-set-hover-light:hover {
-    background-position: 100% 50%;
-  }
-
-  .bg-set-hover-light::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.6), transparent);
-    transform: translateX(-150%);
-    transition: transform 1.2s ease-in-out; 
-
-  .bg-set-hover-light:hover::before {
-    transform: translateX(150%);
+    transition: transform 1.2s ease-in-out;
   }
 }
-/* DARK / LIGHT - HOVER GLOBALS */
 
-
-
-
-
-
-/* DARK / LIGHT GLOBALS */
+/* =========================================================
+   DASHBOARD CARD (REUSES INTERACTIVE CARD)
+========================================================= */
 @layer components {
-  .bg-set {
-    @apply my-10 
-  }
-  /* DARK MODE */
-  .bg-set-dark {
-    @apply relative overflow-hidden border border-gray-100 rounded-2xl p-6 flex flex-col items-center 
-      hover:shadow-lg hover:shadow-gray-300/50 hover:saturate-150 text-white;
+  .dashboard-card { @apply card-interactive w-full flex flex-col items-center p-6 rounded-2xl transition-transform duration-300; }
+  .dashboard-card-dark { @apply card-interactive-dark; }
+  .dashboard-card-light { @apply card-interactive-light; }
+  .dashboard-icon-dark { color: #BDD63B; }
+  .dashboard-icon-light { color: #1E3A8A; }
+  .dashboard-divider-dark { @apply border-t-2 border-white my-4 w-full; }
+  .dashboard-divider-light { @apply border-t-2 border-black my-4 w-full; }
+  .dashboard-description { @apply w-[85%] text-center font-bold; }
+  .dashboard-title { @apply flex items-center gap-2 text-xl font-semibold; }
+}
 
-    background: linear-gradient(to right, #262627, #4f4e4f, #262526); 
+/* =========================================================
+   INPUTS - DONE
+========================================================= */
+@layer components {
+  .inputs-set {@apply w-full p-3 border-2 border-slate-500 bg-slate-200 text-black rounded-lg transition-colors duration-300 placeholder-black focus:placeholder-zinc-500 focus:bg-white;}
+  .inputs-set-dark {@apply focus:outline-none focus:ring-2 focus:ring-[#BDD63B];}
+  .inputs-set-light {@apply focus:outline-none focus:ring-2 focus:ring-[#263248];}
+}
+
+/* =========================================================
+   BUTTONS - DONE
+========================================================= */
+@layer components {
+  .button-set {@apply w-full px-6 py-4 rounded-xl font-semibold cursor-pointer hover:scale-105;}
+  .button-set-dark {@apply bg-[#BDD63B] text-black hover:bg-[#dcfa3e];}
+  .button-set-light {@apply bg-[#263248] text-white hover:bg-[#12264a];}
+}
+
+
+/* =========================================================
+   SLIDESHOW - DONE
+========================================================= */
+@layer components {
+  .slideshow-container { @apply relative w-full h-full overflow-hidden; }
+  .slideshow-image { @apply absolute top-0 left-0 w-full h-full object-cover; }
+  .slideshow-overlay { @apply absolute rounded-lg font-bold shadow-lg; }
+  .slideshow-overlay-dark { @apply bg-gradient-to-r from-slate-200 via-zinc-200 to-slate-300 text-black; }
+  .slideshow-overlay-light { @apply bg-gradient-to-r from-slate-900 via-slate-600 to-zinc-900 text-white; }
+  .slideshow-logo { @apply top-5 left-5 px-5 py-3 text-lg; }
+  .slideshow-caption { @apply bottom-10 left-1/2 -translate-x-1/2 w-[65%] text-center; }
+  .slideshow-text { @apply px-3 py-4 font-bold text-lg; }
+  .slideshow-dots { @apply absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2; }
+  .slideshow-dot { @apply w-2 h-2 rounded-full; }
+  .slideshow-dot-active { @apply bg-[#BDD63B]; }
+  .slideshow-dot-inactive { @apply bg-gray-400; }
+}
+
+
+/* =========================================================
+   INTRO - DONE
+========================================================= */
+@layer components {
+  .intro-container { @apply mb-10 flex flex-col; }
+  .intro-title { @apply text-3xl font-bold; }
+  .intro-user-name { @apply font-semibold; }
+  .intro-count-text { @apply mt-2 text-lg font-semibold; }
+  .intro-count-number { @apply font-bold text-xl; }
+  .intro-count-text:first-of-type { @apply mt-3; }
+}
+
+
+/* =========================================================
+   NAVIGATION - DONE
+========================================================= */
+@layer components {
+  .navigation-container { @apply flex flex-wrap items-center gap-3 mb-8 justify-end; }
+  .nav-button-back { @apply pl-3 pr-5 py-1.5 flex flex-row-reverse items-center rounded-full transition-all duration-300 overflow-hidden; }
+  .nav-button-back-dark { @apply bg-[#BDD63B] text-black hover:bg-[#dcfa3e]; }
+  .nav-button-back-light { @apply bg-[#263248] text-white hover:bg-[#12264a]; }
+  .nav-button-back-label { @apply font-semibold whitespace-nowrap max-w-0 overflow-hidden transition-all duration-300 mr-2 text-left; }
+  .nav-button-logout { @apply px-4 py-2 rounded-lg bg-red-500 text-white transition-colors duration-300 hover:bg-red-700; }
+  .theme-toggle-small { @apply p-2.5 rounded-full transition transform duration-300 hover:scale-125; }
+}
+
+/* =========================================================
+    FORM BACKGROUND
+========================================================= */
+@layer components {
+  .form-container {
+    @apply p-6 rounded-2xl space-y-4 transition-colors duration-500 w-full;
+  }
+
+  .form-dark {
+    background: linear-gradient(to right, #262627, #4f4e4f, #262526);
     background-size: 200% 200%;
     background-position: 0% 50%;
-    position: relative;
+    @apply border border-gray-100 shadow-xl; /* same as card-interactive-dark */
   }
 
-  /* LIGHT MODE */
-  .bg-set-light {
-    @apply relative overflow-hidden border border-gray-400 rounded-2xl p-6 flex flex-col items-center
-      hover:shadow-lg hover:shadow-zinc-300/50 hover:saturate-150 text-black;
-
-    background: linear-gradient(to right, #d1d5db, #e4e4e7, #e4e4e7); 
+  .form-light {
+    background: linear-gradient(to right, #d1d5db, #e4e4e7, #e4e4e7);
     background-size: 200% 200%;
     background-position: 0% 50%;
-    position: relative;
+    @apply border border-gray-400 shadow-xl; /* same as card-interactive-light */
   }
 }
-/* DARK / LIGHT GLOBALS */
 
 
-
-
-
-/* PAGE GLOBALS */
-@layer components { 
-  /* BASE PAGE */
-  .page-set { @apply min-h-screen p-8 transition-colors duration-300; }
-  /* LIGHT PAGE */
-  .page-set-light { @apply bg-slate-100 text-black; }
-  
-  /* DARK PAGE */
-  .page-set-dark { @apply bg-black text-white; }
-}
-/* PAGE GLOBALS */
-
-
-
-
-
-
-/* INPUT GLOBALS */
-@layer components { 
-  /* BASE INPUT */
-  .inputs-set
-   { @apply w-full p-3 border-2 border-slate-500 bg-slate-200 text-black transition-colors duration-300 rounded-lg focus:placeholder-zinc-500 placeholder-black focus:bg-white; }
-
-  /* DARK INPUT */
-  .inputs-set-dark
-   { @apply focus:outline-none focus:ring-2 focus:ring-[#BDD63B]; }
-
-  /* LIGHT INPUT */
-  .inputs-set-light
-   { @apply focus:outline-none focus:ring-2 focus:ring-[#263248]; }
-}
-/* INPUT GLOBALS */
-
-
-/* BUTTON GLOBALS */
-@layer components { 
-  /* BASE BUTTON */
-  .button-set
-   {@apply w-full px-6 py-4 rounded-xl font-semibold hover:scale-105 cursor-pointer;}
-
-  /* DARK BUTTON */
-  .button-set-dark
-   {@apply bg-[#BDD63B] text-black hover:bg-[#dcfa3e];}
-
-  /* LIGHT BUTTON */
-  .button-set-light
-   {@apply bg-[#263248] text-white hover:bg-[#12264a];}
-}
-/* BUTTON GLOBALS */
-
-}
+/* =========================================================
+    ALBUM PAGE
+========================================================= */
+@layer components { .album-form-container { @apply form-container; } }
+@layer components { .file-preview-container { @apply relative w-full flex flex-col; } }
+@layer components { .album-grid { @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6; } }

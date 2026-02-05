@@ -1,7 +1,7 @@
 // frontend/src/pages/auth/Login.jsx
 // LOGIN AUTH
 
-// IMPORT
+// IMPORTS
 import React, { useState } from "react";
 import { Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
@@ -11,20 +11,33 @@ import { useUserData } from "../../services/UserDataContext";
 
 // LOGIN
 export default function Login() {
-  // STATE
+
+  // CONTEXT
   const { setUser, darkMode, setDarkMode } = useUserData();
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("webdevadmin@bcimedia.com"); // pre-fill dev user
-  const [password, setPassword] = useState("devpassword");   // pre-fill dev password
+  // LOCAL STATE
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(() => JSON.parse(localStorage.getItem("rememberMe")) ?? false);
+  const [error, setError] = useState(null);
 
+  const [rememberMe, setRememberMe] = useState(
+    () => JSON.parse(localStorage.getItem("rememberMe")) ?? false
+  );
+
+  // DARK MODE TOGGLE
   const toggleDarkMode = () => setDarkMode(prev => !prev);
 
+  // PERSIST LOGIN
   const persistLogin = (user) => {
+    // CLEAR BOTH STORAGES FIRST (SAFETY)
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("user");
+
     const storage = rememberMe ? localStorage : sessionStorage;
     storage.setItem("user", JSON.stringify(user));
+
     localStorage.setItem("rememberMe", JSON.stringify(rememberMe));
     setUser(user);
     navigate("/dashboard");
@@ -33,50 +46,126 @@ export default function Login() {
   // FORM SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+
     try {
       const userWithToken = await login(email, password);
       persistLogin(userWithToken);
     } catch (err) {
       console.error("Login error:", err);
-      alert(err.message || "An error occurred during login.");
+      setError(err.message || "An error occurred during login.");
     }
   };
 
+  // RENDER
   return (
-    <div className={`min-h-screen flex items-center justify-center transition-colors duration-500 ${darkMode ? "bg-black text-white" : "bg-slate-100 text-black"}`}>
-      <div className={`flex w-[900px] max-w-full rounded-2xl shadow-2xl overflow-hidden transition-colors duration-500 ${darkMode ? "bg-[linear-gradient(to_right,#262627,#4f4e4f,#262526)]" : "bg-[linear-gradient(to_right,#d1d5db,#e4e4e7,#e4e4e7)]"}`} style={{ maxHeight: "90vh" }}>
+    // LOGIN PAGE
+    <div className={`auth-page ${darkMode ? "page-set-dark" : "page-set-light"}`}>
+
+      {/* AUTH CONTAINER */}
+      <div className={`auth-container ${darkMode ? "auth-container-dark" : "auth-container-light"}`}>
+
         {/* LEFT SLIDESHOW */}
-        <div className="w-1/2 hidden md:block">
-          <Slideshow slides={introSlides} darkMode={darkMode} containerHeight="80vh" />
+        <div className="auth-left">
+          <Slideshow
+            slides={introSlides}
+            darkMode={darkMode}
+            containerHeight="80vh"
+          />
         </div>
 
         {/* RIGHT LOGIN FORM */}
-        <div className="w-full md:w-1/2 p-10 flex flex-col justify-center overflow-y-auto">
-          <div className="flex justify-between items-center">
-            <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-black"}`}>Welcome!</h2>
-            <button onClick={toggleDarkMode} className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-300 transition-colors duration-300">
-              {darkMode ? <Sun className="text-black" size={30} /> : <Moon className="text-black" size={30} />}
+        <div className="auth-right">
+
+          {/* HEADER */}
+          <div className="auth-header">
+            <h2 className="auth-title">Welcome!</h2>
+
+            <button
+              onClick={toggleDarkMode}
+              className={`theme-toggle hover:scale-125 ${
+                darkMode ? "theme-toggle-dark" : "theme-toggle-light"
+              }`}
+            >
+              {darkMode ? <Sun size={30} /> : <Moon size={30} />}
             </button>
           </div>
 
-          <p className={`text-lg mb-1 ${darkMode ? "text-white" : "text-black"}`}>Sign in to access Insight.</p>
-          <p className={`text-lg mb-6 ${darkMode ? "text-white" : "text-black"}`}>
-            Don't have an account? <Link to="/register" className={`font-medium hover:underline ${darkMode ? "text-[#BDD63B]" : "text-[#1E1C29]"}`}>Register</Link>
+          {/* SUBTEXT */}
+          <p className="auth-subtext pb-2">Sign in to access Insight.</p>
+          <p className="auth-subtext mb-6">
+            Don't have an account?{" "}
+            <Link
+              to="/register"
+              className={`link ${darkMode ? "link-dark" : "link-light"}`}
+            >
+              Register
+            </Link>{" "}
+            here!
           </p>
 
+          {/* ERROR */}
+          {error && (
+            <p className="text-red-500 text-sm mb-2">
+              {error}
+            </p>
+          )}
+
+          {/* FORM */}
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`} />
+
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+              required
+            />
+
+            {/* PASSWORD */}
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-black">{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+                required
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} className="accent-[#BDD63B]" />
-              <span className={darkMode ? "text-white" : "text-black"}>Remember Me</span>
+            {/* REMEMBER ME */}
+            <label className={`flex items-center link ${
+                  darkMode ? "link-dark" : "link-light"
+                }`}>
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className={`m-3 transform scale-150 ${
+                  darkMode ? "accent-[#BDD63B]" : "accent-[#1e1c29]"
+                }`}
+              />
+              Remember Me
             </label>
 
-            <button type="submit" className={`button-set ${darkMode ? "button-set-dark" : "button-set-light"}`}>Sign In</button>
+            {/* SUBMIT */}
+            <button
+              type="submit"
+              className={`button-set ${darkMode ? "button-set-dark" : "button-set-light"}`}
+            >
+              Sign In
+            </button>
+
           </form>
         </div>
       </div>

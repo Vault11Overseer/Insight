@@ -4,30 +4,6 @@
 // EXPORT
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// AUTH HEADERS
-function getAuthHeaders() {
-  const user =
-    JSON.parse(localStorage.getItem("user") || "null") ||
-    JSON.parse(sessionStorage.getItem("user") || "null");
-
-  return {
-    "Content-Type": "application/json",
-    ...(user?.accessToken ? { Authorization: `Bearer ${user.accessToken}` } : {}),
-  };
-}
-
-// HEALTH CHECK
-export const healthCheck = async () => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/health`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    return await res.json();
-  } catch (err) {
-    console.error("❌ HEALTH CHECK ERROR:", err);
-    return { status: "error", error: err.message };
-  }
-};
-
 // AUTH
 // AUTH LOGIN
 export const login = async (email, password) => {
@@ -46,11 +22,41 @@ export const login = async (email, password) => {
   }
 
   const data = await res.json();
-  const userWithToken = { ...data.user, accessToken: data.accessToken };
+  const token = data.access_token || data.accessToken;
+  const userWithToken = { ...data.user, accessToken: token };
   return userWithToken;
 };
 
+// AUTH HEADERS
+function getAuthHeaders() {
+  const user =
+    JSON.parse(localStorage.getItem("user") || "null") ||
+    JSON.parse(sessionStorage.getItem("user") || "null");
+
+  const token = user?.accessToken || user?.access_token;
+
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// HEALTH CHECK
+export const healthCheck = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/health`);
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("❌ HEALTH CHECK ERROR:", err);
+    return { status: "error", error: err.message };
+  }
+};
+
+// ----------------------
 // GALLERY
+// ----------------------
+
 // GET GALLERY
 export const getGallery = async (skip = 0, limit = 100, search = null) => {
   const params = new URLSearchParams({ skip, limit });
@@ -182,7 +188,11 @@ export const createAlbum = async (title, description = null, defaultImage = null
     body: formData,
   });
 
-  if (!res.ok) throw new Error("Failed to create album");
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Failed to create album" }));
+    throw new Error(error.detail || "Failed to create album");
+  }
+
   return res.json();
 };
 

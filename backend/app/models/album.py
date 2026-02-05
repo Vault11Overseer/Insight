@@ -18,7 +18,7 @@ class Album(Base):
     description = Column(String, nullable=True)
 
     # ALBUM COVER IMAGE (S3 KEY, NOT AN IMAGE RECORD)
-    cover_image_key = Column(String, nullable=True)
+    cover_image_s3_key = Column(String, nullable=True)
 
 
     owner_user_id = Column(

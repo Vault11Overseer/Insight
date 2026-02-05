@@ -7,16 +7,11 @@ import { Image, User, Trash2, Pencil } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 import { useNavigate } from "react-router-dom";
 
-export default function AlbumCard({
-  album,
-  canEdit,
-  onOpen,
-  onDelete,
-  darkMode,
-}) {
-
-
+// EXPORT ALBUM CARD
+export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}) {
+  // STATE
   const navigate = useNavigate();
+
   return (
     <div className={`relative rounded-2xl overflow-hidden shadow group bg-white dark:bg-gray-800  ${
       darkMode
@@ -27,10 +22,12 @@ export default function AlbumCard({
       {/* IMAGE */}
       <div className="relative h-48 w-full">
         <img
-          // src={album.cover_image_url || defaultImage}
           src={album.cover_image_url?.trim() ? album.cover_image_url : defaultImage}
-
           alt={album.title}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultImage;
+          }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
         />
 

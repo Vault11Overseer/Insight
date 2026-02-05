@@ -10,35 +10,49 @@ export default function Intro() {
   // STATE
   const { user, darkMode, albumsCount, imagesCount } = useUserData();
 
+  // GUARD: USER NOT LOADED YET
+  if (!user) {
+    return (
+      <div className="intro-container">
+        <h1 className={`intro-title ${darkMode ? "text-white" : "text-black"}`}>
+          Welcome!
+        </h1>
+      </div>
+    );
+  }
+
   // RETURN
   return (
     // WELCOME SECTION
-    <div className="mb-10">
-     <h1 className={`text-3xl font-bold ${ darkMode ? "text-white" : "text-black" }`}>
-          Welcome,{" "}
-        <span
-          className={` ${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
-          {user?.first_name && user?.last_name ? `${user.first_name} ${user.last_name}` : user?.username || "User"}
+    <div className="intro-container">
+
+      {/* TITLE */}
+      <h1 className={`intro-title ${darkMode ? "text-white" : "text-black"}`}>
+        Welcome,{" "}
+        <span className={`intro-user-name ${darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
+          {user.first_name && user.last_name
+            ? `${user.first_name} ${user.last_name}`
+            : user.username || "User"}
         </span>
         !
       </h1>
 
       {/* ALBUM COUNT */}
-      <p className={`mt-3 text-lg font-semibold  ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
+      <p className={`intro-count-text ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
         You’ve created{" "}
-        <span className={`font-bold text-xl  ${darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
+        <span className={`intro-count-number ${darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
           {albumsCount}
         </span>{" "}
         albums.
       </p>
 
       {/* IMAGES COUNT */}
-      <p className={`mt-2 text-lg font-semibold ${ darkMode ? "text-gray-200" : "text-gray-800" }`}>
+      <p className={`intro-count-text ${darkMode ? "text-gray-200" : "text-gray-800"}`}>
         You have uploaded{" "}
-          <span className={`font-bold text-xl  ${darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
-            {imagesCount}
-          </span>{" "}
-          images.
+        <span className={`intro-count-number ${darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}`}>
+          {imagesCount}
+        </span>{" "}
+        images.
       </p>
 
     </div>

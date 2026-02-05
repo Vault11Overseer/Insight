@@ -22,22 +22,18 @@ export default function Gallery() {
   // RENDER
   // =========================
   return (
-    <div
-      className={`min-h-screen p-8 transition-colors duration-300 ${
-        darkMode ? "bg-black text-white" : "bg-white text-black"
-      }`}
-    >
-      {/* HEADER */}
-      <Header
-        navigationProps={{
-          toggleDarkMode: () => setDarkMode((prev) => !prev),
-        }}
-      />
 
-      {/* PAGE TITLE */}
+    // ALBUM CONTAINER
+    <div className={`page-set ${ darkMode ? "page-set-dark" : "page-set-light" }`}>
+
+      {/* HEADER */}
+      <Header navigationProps={{ toggleDarkMode: () => setDarkMode((prev) => !prev) }} />
+
+      {/* PAGE HEADER */}
       <div className="flex items-center gap-2 mt-10 mb-6">
-        <GalleryVerticalEnd size={22} />
-        <h1 className="text-2xl font-semibold">Gallery</h1>
+      <GalleryVerticalEnd size={30} className={`${ darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"  }`}/>
+        <h1 className="text-4xl font-semibold">Gallery</h1>
+        <p className="text-1xl opacity-90 mt-2 font-bold">Browse, Download, or Share all images uploaded to Insight.</p>
       </div>
 
   

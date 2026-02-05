@@ -2,132 +2,188 @@
 // REGISTER
 
 // IMPORTS
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff, Sun, Moon } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import Slideshow, { introSlides } from "../../components/module/Slideshow";
 import { useUserData } from "../../services/UserDataContext";
 
+// REGISTER
 export default function Register() {
+
   // CONTEXT
   const { darkMode, setDarkMode } = useUserData();
   const navigate = useNavigate();
 
-  // LOCAL FORM STATE
+  // LOCAL STATE
   const [showPassword, setShowPassword] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // DARK MODE 
-  const toggleDarkMode = () => setDarkMode((prev) => !prev);
+  // FORM STATE
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // SUBMIT
+  // DARK MODE TOGGLE
+  const toggleDarkMode = () => setDarkMode(prev => !prev);
+
+  // FORM SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    // Placeholder until real auth is wired
-    console.log({ firstName, lastName, email, password });
+    try {
+      // FUTURE: Replace this block with Cognito + backend registration call
+      // await register({ firstName, lastName, email, password });
 
-    alert("Registration submitted! (Cognito signup pending)");
-    navigate("/login");
+      console.log("REGISTER PAYLOAD:", {
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+      });
+
+      // TEMPORARY MOCK SUCCESS
+      alert("Registration submitted! (Cognito signup pending)");
+      navigate("/login");
+
+    } catch (err) {
+      console.error("REGISTRATION ERROR:", err);
+      setError(err.message || "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // RENDER
   return (
-    // REGISTER CONTAINER
-    <div className={`min-h-screen flex items-center justify-center transition-colors duration-500 ${
-      darkMode ? "bg-black text-white" : "bg-white text-black"
-    }`}>
-      <div
-        className={`flex w-[900px] max-w-full rounded-2xl shadow-2xl overflow-hidden transition-colors duration-500 ${
-    darkMode ? "bg-[linear-gradient(to_right,#262627,#4f4e4f,#262526)]" : "bg-[linear-gradient(to_right,#d1d5db,#e4e4e7,#e4e4e7)]"
-  }`}
-  style={{ maxHeight: "90vh" }}>
+    // REGISTER PAGE
+    <div className={`auth-page ${darkMode ? "page-set-dark" : "page-set-light"}`}>
+
+      {/* AUTH CONTAINER */}
+      <div className={`auth-container ${darkMode ? "auth-container-dark" : "auth-container-light"}`}>
+
         {/* LEFT SLIDESHOW */}
-        <div className="w-1/2 hidden md:block">
-          <Slideshow slides={introSlides} darkMode={darkMode} containerHeight="80vh" />
+        <div className="auth-left">
+          <Slideshow
+            slides={introSlides}
+            darkMode={darkMode}
+            containerHeight="80vh"
+          />
         </div>
 
+        {/* RIGHT REGISTER FORM */}
+        <div className="auth-right">
 
-        {/* RIGHT FORM */}
-        <div className="w-full md:w-1/2 p-10 flex flex-col justify-center overflow-y-auto">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className={`text-2xl font-bold ${darkMode ? "text-white" : "text-black"}`}>
-              Create an account
-            </h2>
-            <button onClick={toggleDarkMode} className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-300 transition-colors duration-300">
-                          {darkMode ? <Sun className="text-black" size={30} /> : <Moon className="text-black" size={30} />}
-                        </button>
+          {/* HEADER */}
+          <div className="auth-header">
+            <h2 className="auth-title">Create an account</h2>
+
+            <button
+              onClick={toggleDarkMode}
+              className={`theme-toggle ${darkMode ? "theme-toggle-dark" : "theme-toggle-light"}`}
+            >
+              {darkMode ? <Sun size={30} /> : <Moon size={30} />}
+            </button>
           </div>
 
-          <p className={`text-lg mb-6 ${darkMode ? "text-white" : "text-black"}`}>
+          {/* SUBTEXT */}
+          <p className="auth-subtext mb-6">
             Already have an account?{" "}
-            <Link to="/login" className={`font-medium hover:underline ${darkMode ? "text-[#BDD63B]" : "text-[#1E1C29]"}`}>
+            <Link
+              to="/login"
+              className={`link ${darkMode ? "link-dark" : "link-light"}`}
+            >
               Log in
             </Link>
           </p>
 
+          {/* ERROR MESSAGE */}
+          {error && (
+            <div className="text-red-500 font-semibold mb-4">
+              {error}
+            </div>
+          )}
+
+          {/* FORM */}
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+
+            {/* NAME FIELDS */}
             <div className="flex gap-3">
               <input
-                type="text"
                 placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
-
+                className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+                required
               />
+
               <input
-                type="text"
                 placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
-
+                className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+                required
               />
             </div>
 
+            {/* EMAIL */}
             <input
               type="email"
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
-
+              className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+              required
             />
 
+            {/* PASSWORD */}
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className={`inputs-set ${ darkMode ? "inputs-set-dark" : "inputs-set-light" }`}
-
+                className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+                required
               />
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
 
-            <label className={`flex items-center text-lg ${darkMode ? "text-white" : "text-black"}`}>
-              <input type="checkbox" className="mr-2 accent-[#BDD63B] " />
+            {/* TERMS */}
+            <label className="flex items-center text-lg">
+              <input type="checkbox" className={`m-3 transform scale-150 ${
+                  darkMode ? "accent-[#BDD63B]" : "accent-[#1e1c29]"
+                }`} required />
               I agree to the{" "}
-              <Link to="#" className={`ml-1 hover:underline ${darkMode ? "text-[#BDD63B]" : "text-[#1E1C29]"}`}>
+              <Link
+                to="#"
+                
+                className={`link ml-1 ${darkMode ? "link-dark" : "link-light"}`}
+              >
                 Terms & Conditions
               </Link>
             </label>
 
-            <button type="submit" className={`button-set ${ darkMode ? "button-set-dark" : "button-set-light" }`}
->
-              Create Account
+            {/* SUBMIT */}
+            <button
+              type="submit"
+              disabled={loading}
+              className={`button-set ${darkMode ? "button-set-dark" : "button-set-light"} ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+            >
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
+
           </form>
         </div>
       </div>

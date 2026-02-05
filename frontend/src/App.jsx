@@ -12,7 +12,7 @@ import PrivateRoute from "./pages/auth/PrivateRoute";
 
 // NORMAL ROUTES
 import Dashboard from "./pages/Dashboard";
-import Albums from "./pages/Album";
+import Albums from "./pages/Albums";
 import Gallery from "./pages/Gallery";
 import AlbumView from "./components/page/AlbumView"
 import Upload from "./pages/Upload"
