@@ -11,7 +11,7 @@
 html, body { margin: 0; padding: 0;}
 
 @layer components {
-  .hr {height: 3px; border-radius:10px; border: none; margin-bottom:20px; margin:10px;}
+  .hr {height: 3px; border-radius:10px; border: none; margin-bottom:20px;}
   .hr-dark { background-color: white; }
   .hr-light { background-color: black; }
 }
@@ -27,11 +27,7 @@ html, body { margin: 0; padding: 0;}
 
 
 /* SECTION HEADERS */
-@layer components { 
-  .section-header { @apply text-2xl font-semibold mt-8 mb-5 ; } 
-  /* .link-dark { color: white; }
-  .link-light { color: black; } */
-}
+@layer components { .section-header { @apply text-2xl font-semibold mt-8 mb-5 ; } }
 
 
 /* =========================================================
@@ -194,7 +190,7 @@ html, body { margin: 0; padding: 0;}
    NAVIGATION - DONE
 ========================================================= */
 @layer components {
-  .navigation-container { @apply flex flex-wrap items-center gap-3 mb-8 justify-end; }
+  .navigation-container { @apply flex flex-nowrap items-center gap-3 mb-8 justify-end; }
   .nav-button-back { @apply pl-3 pr-5 py-1.5 flex flex-row-reverse items-center rounded-full transition-all duration-300 overflow-hidden; }
   .nav-button-back-dark { @apply bg-[#BDD63B] text-black hover:bg-[#dcfa3e]; }
   .nav-button-back-light { @apply bg-[#263248] text-white hover:bg-[#12264a]; }
@@ -207,9 +203,7 @@ html, body { margin: 0; padding: 0;}
     FORM BACKGROUND
 ========================================================= */
 @layer components {
-  .form-container {
-    @apply p-6 rounded-2xl space-y-4 transition-colors duration-500 w-full;
-  }
+  .form-container { @apply p-6 rounded-2xl space-y-4 transition-colors duration-500 w-full;}
 
   .form-dark {
     background: linear-gradient(to right, #262627, #4f4e4f, #262526);
@@ -247,9 +241,9 @@ html, body { margin: 0; padding: 0;}
 /* =========================================================
     ALBUM PAGE
 ========================================================= */
-@layer components { .album-form-container { @apply form-container; } }
+/* @layer components { .display-form-container { @apply form-container; } } */
 @layer components { .file-preview-container { @apply relative w-full flex flex-col; } }
-@layer components { .album-grid { @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6; } }
+@layer components { .display-grid { @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6; } }
 
 /* =========================================================
    ALBUM / IMAGE CARD (LAYOUT ONLY — VISUALS IN CARD-INTERACTIVE)

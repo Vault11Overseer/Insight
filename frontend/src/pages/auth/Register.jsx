@@ -1,5 +1,6 @@
 // frontend/src/pages/auth/Register.jsx
 // REGISTER
+// DONE
 
 // IMPORTS
 import React, { useState } from "react";

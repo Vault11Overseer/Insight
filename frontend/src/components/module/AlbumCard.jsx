@@ -1,5 +1,6 @@
 // frontend/src/components/module/AlbumCard.jsx
 // ALBUM CARD
+// DONE
 
 // IMPORTS
 import { User, Trash2, Pencil } from "lucide-react";
@@ -7,13 +8,7 @@ import defaultImage from "/default_album_image.png";
 import { useNavigate } from "react-router-dom";
 
 // EXPORT ALBUM CARD
-export default function AlbumCard({
-  album,
-  canEdit,
-  onOpen,
-  onDelete,
-  darkMode,
-}) {
+export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}) {
   // NAVIGATE STATE
   const navigate = useNavigate();
 
@@ -64,10 +59,10 @@ export default function AlbumCard({
             className="card-action-icon card-action-delete card-action-scale"
             title="Delete Album"
           >
-        <Trash2 size={18} />
-      </button>
-    </div>
-  </div>
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
       {/* OWNER BADGE */}
       {album.owner_user_id && (
         <div className="card-owner-badge">

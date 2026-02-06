@@ -1,5 +1,6 @@
 // frontend/src/pages/auth/PrivateRoute.jsx
 // PRIVATE ROUTE
+// DONE
 
 // IMPORTS
 import { Navigate } from "react-router-dom";

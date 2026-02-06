@@ -1,23 +1,62 @@
-// import React from "react";
-import { Eye } from "lucide-react";
+// frontend/src/components/module/ImageCard.jsx
+// IMAGE CARD
+// DONE
 
-export default function ImageCard({ image, onOpen }) {
+// IMPORTS
+import React from "react";
+import { Eye } from "lucide-react";
+import defaultImage from "/default_album_image.png";
+
+// EXPORT IMAGE CARD
+export default function ImageCard({
+  image,
+  onOpen,
+  darkMode,
+}) {
+  // HANDLE OPEN IMAGE
+  const handleOpen = (e) => {
+    e.stopPropagation();
+    onOpen(image);
+  };
+
+  // RESOLVE IMAGE SOURCE
+  const imageSrc =
+    image.preview_url ||
+    image.s3_url ||
+    image.url ||
+    defaultImage;
+
+  // RENDER
   return (
-    <div className="relative rounded-2xl overflow-hidden shadow group bg-white dark:bg-gray-800">
+    <div
+      className={`group card ${darkMode ? "card-dark" : "card-light"}`}
+      onClick={handleOpen}
+    >
       {/* IMAGE */}
-      <div className="relative h-48 w-full">
-        {/* IMAGE SOURCE FALLBACK: PREFER PREVIEW, THEN S3 URL, THEN LEGACY `url` */}
+      <div className="card-image-wrapper">
         <img
-          src={image.preview_url || image.s3_url || image.url}
+          src={imageSrc}
           alt={image.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = defaultImage;
+          }}
+          className="card-image"
         />
 
-        {/* ACTIONS */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+        {/* HOVER ACTIONS */}
+        <div
+          className="card-overlay"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* VIEW ICON */}
           <button
-            onClick={() => onOpen(image)}
-            className="bg-[#BDD63B] hover:bg-[#a4c12d] p-3 rounded-full text-black"
+            onClick={handleOpen}
+            className={`card-action-icon card-action-scale ${
+              darkMode
+                ? "card-action-edit-dark"
+                : "card-action-edit-light"
+            }`}
             title="View Image"
           >
             <Eye size={18} />
@@ -25,11 +64,17 @@ export default function ImageCard({ image, onOpen }) {
         </div>
       </div>
 
-      {/* TITLE */}
-      <div className="p-3">
-        <h3 className="font-semibold truncate">
+      {/* IMAGE INFO */}
+      <div className="card-body">
+        <h3 className="card-title">
           {image.title}
         </h3>
+
+        {image.description && (
+          <p className="card-description">
+            {image.description}
+          </p>
+        )}
       </div>
     </div>
   );

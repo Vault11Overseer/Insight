@@ -1,6 +1,6 @@
 // frontend/src/App.jsx
-
 // APP
+
 // IMPORTS
 import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate,} from "react-router-dom";
@@ -15,14 +15,12 @@ import Dashboard from "./pages/Dashboard";
 import Albums from "./pages/Albums";
 import Gallery from "./pages/Gallery";
 import AlbumView from "./components/page/AlbumView"
-import Upload from "./pages/Upload"
-import Settings from "./pages/Settings"
+import Settings from "./pages/auth/Settings"
 import Images from "./pages/Images"
 import ImageDetail from "./components/page/ImageDetail"
 
 // OTHER ROUTES
 import { healthCheck } from "./services/api";
-import { UserDataProvider } from "./services/UserDataContext";
 
 
 // APP
@@ -39,19 +37,16 @@ function App() {
       });
   }, []);
 
-  // RETURN
-  return (
 
-// ROUTERS
+  return (
+    // ROUTERS
     <Router>
       <Routes>
         {/* ROOT */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-
         {/* PUBLIC */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         {/* PROTECTED */}
         <Route
           path="/dashboard"
@@ -61,7 +56,6 @@ function App() {
             </PrivateRoute>
           }
         />
-
         {/* ALBUMS */}
         <Route
           path="/albums"
@@ -71,73 +65,62 @@ function App() {
             </PrivateRoute>
           }
         />
-
           {/* SINGLE ALBUM */}
-          <Route
-            path="/albums/:albumId"
+        <Route
+          path="/albums/:albumId"
+          element={
+            <PrivateRoute>
+              <AlbumView />
+            </PrivateRoute>
+          }
+        />
+
+        {/* GALLERY */}
+        <Route
+          path="/gallery"
+          element={
+            <PrivateRoute>
+              <Gallery />
+            </PrivateRoute>
+          }
+        />
+
+
+        {/* SETTINGS */}
+        <Route
+            path="/settings"
             element={
               <PrivateRoute>
-                <AlbumView />
+                <Settings />
               </PrivateRoute>
             }
-          />
+        />
 
-          {/* GALLERY */}
-          <Route
-            path="/gallery"
-            element={
-              <PrivateRoute>
-                <Gallery />
-              </PrivateRoute>
+        {/* IMAGES */}
+        <Route
+          path="/images"
+          element={
+            <PrivateRoute>
+              <Images />
+            </PrivateRoute>
             }
-          />
+        />
 
-          {/* UPLOAD */}
-          <Route
-              path="/upload"
-              element={
-                <PrivateRoute>
-                  <Upload />
-                </PrivateRoute>
-              }
-          />
+        {/* SINGLE IMAGE */}
+        <Route
+          path="/imagedetail"
+          element={
+            <PrivateRoute>
+              <ImageDetail />
+            </PrivateRoute>
+          }
+        />
 
-          {/* SETTINGS */}
-          <Route
-              path="/settings"
-              element={
-                <PrivateRoute>
-                  <Settings />
-                </PrivateRoute>
-              }
-          />
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
 
-          {/* IMAGES */}
-          <Route
-            path="/images"
-            element={
-              <PrivateRoute>
-                <Images />
-              </PrivateRoute>
-              }
-          />
-
-          {/* SINGLE IMAGE */}
-          <Route
-            path="/imagedetail"
-            element={
-              <PrivateRoute>
-                <ImageDetail />
-              </PrivateRoute>
-            }
-          />
-
-  {/* FALLBACK */}
-  <Route path="*" element={<Navigate to="/login" replace />} />
-
-</Routes>
-</Router>
-
+      </Routes>
+    </Router>
   );
 }
 

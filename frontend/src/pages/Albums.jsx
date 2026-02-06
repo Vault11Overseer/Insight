@@ -1,5 +1,6 @@
 // frontend/src/pages/Albums.jsx
 // ALBUMS
+// DONE
 
 // IMPORTS
 import React, { useEffect, useState } from "react";
@@ -10,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { LibraryBig, User } from "lucide-react";
 import defaultAlbumImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
+import SearchBar from "../components/module/Searchbar";
 
 // ALBUMS
 export default function Albums() {
@@ -24,26 +26,17 @@ export default function Albums() {
   // DELETE MODAL STATE
   const [albumToDelete, setAlbumToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  // SEARCH STATE
+  const [search, setSearch] = useState("");
   // USER STATE
-  const {
-    user,
-    darkMode,
-    setDarkMode,
-    setAlbumsCount,
-    canEditAlbum,
-  } = useUserData();
+  const { user, darkMode, setDarkMode, setAlbumsCount, canEditAlbum, } = useUserData();
   // NAVIGATE STATE
   const navigate = useNavigate();
 
-  // =========================
   // FETCH ALBUMS
-  // =========================
   /**
    * ⚠️ BORDERLINE LOGIC (KNOWN FUTURE REFACTOR)
    * Fetches ALL albums and filters locally.
-   * This WILL move to:
-   *   - getMyAlbums()
-   *   - getAllAlbums() (admin)
    * Do NOT change yet.
    */
   useEffect(() => {
@@ -62,14 +55,19 @@ export default function Albums() {
     fetchAlbums();
   }, []);
 
-  // =========================
+  // DERIVED DATA (NO LOGIC REMOVED)
+  const userAlbums = albums.filter(
+    (album) => album.owner_user_id === user?.id
+  );
+
+  const filteredAlbums = userAlbums.filter((album) =>
+    album.title.toLowerCase().includes(search.toLowerCase())
+  );
+
   // NAVIGATION
-  // =========================
   const openAlbum = (album) => navigate(`/albums/${album.id}`);
 
-  // =========================
   // DELETE FLOW
-  // =========================
   const requestDelete = (album) => {
     if (!canEditAlbum(album)) return;
     setAlbumToDelete(album);
@@ -91,9 +89,7 @@ export default function Albums() {
     }
   };
 
-  // =========================
   // IMAGE HANDLING
-  // =========================
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -111,9 +107,7 @@ export default function Albums() {
     if (input) input.value = "";
   };
 
-  // =========================
   // CREATE ALBUM
-  // =========================
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -135,9 +129,7 @@ export default function Albums() {
 
   if (loading) return <p className="p-8">Loading albums…</p>;
 
-  // =========================
   // RENDER
-  // =========================
   return (
     <div className={`page-set ${darkMode ? "page-set-dark" : "page-set-light"}`}>
       {/* HEADER */}
@@ -258,27 +250,25 @@ export default function Albums() {
       </section>
 
       {/* USER ALBUMS */}
-      <section >
-
-        <h2 className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ display: 'flex', alignItems: 'center' }}>
-            <span>Your Albums</span>
-            <div
-              className={"rounded-full p-2 shadow bg-purple-500 text-white ml-2 ;"}
-             
-            >
-              <User size={16} />
-            </div>
-          </span>
+      <section>
+        <h2 className="section-header flex items-center gap-2">
+          <span>Your Albums</span>
+          <div className="rounded-full p-2 shadow bg-purple-500 text-white">
+            <User size={16} />
+          </div>
         </h2>
 
-        {albums.filter((a) => a.owner_user_id === user?.id).length === 0 ? (
+        {/* EMPTY STATE */}
+        {userAlbums.length === 0 ? (
           <p className="opacity-70">No albums uploaded yet.</p>
         ) : (
-          <div className="album-grid">
-            {albums
-              .filter((a) => a.owner_user_id === user?.id)
-              .map((album) => (
+          <>
+            {/* SEARCH BAR ONLY WHEN ALBUMS EXIST */}
+            <SearchBar value={search} onChange={setSearch} />
+
+            {/* ALBUM GRID */}
+            <div className="display-grid py-6">
+              {filteredAlbums.map((album) => (
                 <AlbumCard
                   key={album.id}
                   album={album}
@@ -288,7 +278,8 @@ export default function Albums() {
                   darkMode={darkMode}
                 />
               ))}
-          </div>
+            </div>
+          </>
         )}
       </section>
 
@@ -305,7 +296,7 @@ export default function Albums() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setAlbumToDelete(null)}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${darkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-200 hover:bg-gray-300"}`}
+                className={`px-4 py-2 rounded-lg font-medium ${darkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-200 hover:bg-gray-300"}`}
                 disabled={isDeleting}
               >
                 Cancel

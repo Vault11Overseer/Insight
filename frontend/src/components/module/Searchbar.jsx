@@ -1,5 +1,6 @@
 // frontend/src/components/module/Searchbar.jsx
 // SEARCH BAR
+// DONE
 
 // IMPORTS
 import { Search as SearchIcon } from "lucide-react";
@@ -21,9 +22,7 @@ export default function SearchBar({
       {/* SEARCH ICON */}
       <SearchIcon
         size={18}
-        className={`absolute left-4 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none ${
-          darkMode ? "text-white" : "text-black"
-        }`}
+        className={`absolute left-4 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none text-black`}
       />
 
       {/* SEARCH INPUT */}
@@ -31,7 +30,7 @@ export default function SearchBar({
         type="text"
         value={value}
         onChange={onChange}
-        placeholder={placeholder}
+        placeholder={"Search Images, Albums, Tags, Dates, or Locations!"}
         className={`inputs-set pl-12 ${
           darkMode ? "inputs-set-dark" : "inputs-set-light"
         }`}
