@@ -197,10 +197,18 @@ export const createAlbum = async (title, description = null, defaultImage = null
 };
 
 export const updateAlbum = async (albumId, data) => {
+  const formData = new FormData();
+  if (data.title) formData.append("title", data.title);
+  if (data.description !== undefined) formData.append("description", data.description);
+  if (data.default_image) formData.append("default_image", data.default_image);
+
+  const headers = getAuthHeaders();
+  delete headers["Content-Type"]; // Let browser set boundary
+
   const res = await fetch(`${API_BASE_URL}/albums/${albumId}`, {
     method: "PUT",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
+    headers,
+    body: formData,
   });
   if (!res.ok) throw new Error("Failed to update album");
   return res.json();
@@ -214,6 +222,63 @@ export const deleteAlbum = async (albumId) => {
   if (!res.ok) throw new Error("Failed to delete album");
   return res.json();
 };
+
+// =========================
+// S3 UPLOAD HELPERS
+// =========================
+export const uploadFileToS3 = async (file, path) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("path", path); // e.g., avatars/{userId}/avatar.jpg
+
+  const res = await fetch(`${API_BASE_URL}/s3-upload`, {
+    method: "POST",
+    body: formData,
+    headers: getAuthHeaders(), // include auth
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Failed to upload file" }));
+    throw new Error(error.detail || "Failed to upload file");
+  }
+
+  return res.json(); // returns { s3_key, s3_url }
+};
+
+// =========================
+// UPDATE ALBUM (EXTENDED)
+// =========================
+export const updateAlbumWithCover = async (albumId, data, coverFile = null) => {
+  let coverData = null;
+
+  if (coverFile) {
+    // Upload cover image to S3 first
+    coverData = await uploadFileToS3(coverFile, `album_images/${albumId}_cover.jpg`);
+  }
+
+  // Append S3 cover key to data if uploaded
+  const formData = new FormData();
+  if (data.title) formData.append("title", data.title);
+  if (data.description !== undefined) formData.append("description", data.description);
+  if (coverData?.s3_key) formData.append("default_image", coverFile); // send as file for backend processing
+
+  const headers = getAuthHeaders();
+  delete headers["Content-Type"]; // let browser set boundary
+
+  const res = await fetch(`${API_BASE_URL}/albums/${albumId}`, {
+    method: "PUT",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Failed to update album" }));
+    throw new Error(error.detail || "Failed to update album");
+  }
+
+  return res.json();
+};
+
 
 // =========================
 // FAVORITES

@@ -12,8 +12,8 @@ html, body { margin: 0; padding: 0;}
 
 @layer components {
   .hr {height: 3px; border-radius:10px; border: none; margin-bottom:20px; margin:10px;}
-  .hr-dark { background-color: #bdd63b; }
-  .hr-light { background-color: #1e1c29; }
+  .hr-dark { background-color: white; }
+  .hr-light { background-color: black; }
 }
 
 
@@ -86,7 +86,7 @@ html, body { margin: 0; padding: 0;}
    CARD BASE (SHARED)
 ========================================================= */
 @layer components {
-  .card-base { @apply w-full flex flex-col items-center p-6 rounded-2xl transition-transform duration-300; }
+  .card-base { @apply w-full flex flex-col items-center p-3 rounded-2xl transition-transform duration-300; }
   .card-bordered-dark { @apply border border-gray-100 text-white; }
   .card-bordered-light { @apply border border-gray-400 text-black; }
 }
@@ -226,6 +226,23 @@ html, body { margin: 0; padding: 0;}
   }
 }
 
+/* =========================================================
+   VIEW PAGE SHARED (AlbumView & ImageView)
+========================================================= */
+@layer components {
+  .view-header { @apply my-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center; }
+  .view-info { @apply md:col-span-2 space-y-3; }
+  .view-title { @apply text-4xl font-bold; }
+  .view-description { @apply opacity-80; }
+  .view-meta { @apply text-sm opacity-70 space-y-1; }
+  .view-cover { @apply w-full h-48 object-contain rounded-xl border; }
+
+  .view-edit-section { @apply my-10 max-w-2xl; }
+  .view-form-title { @apply text-xl font-semibold; }
+  .view-cover-input { @apply space-y-2; }
+  .button-remove-image { @apply absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded; }
+}
+
 
 /* =========================================================
     ALBUM PAGE
@@ -233,3 +250,28 @@ html, body { margin: 0; padding: 0;}
 @layer components { .album-form-container { @apply form-container; } }
 @layer components { .file-preview-container { @apply relative w-full flex flex-col; } }
 @layer components { .album-grid { @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6; } }
+
+/* =========================================================
+   ALBUM / IMAGE CARD (LAYOUT ONLY — VISUALS IN CARD-INTERACTIVE)
+========================================================= */
+@layer components {
+  .card { @apply card-interactive cursor-pointer; }
+  .card-dark { @apply card-interactive-dark; }
+  .card-light { @apply card-interactive-light; }
+  .card-image-wrapper {@apply w-full h-48 rounded-lg overflow-hidden flex items-center justify-center relative;}
+  .card-image {@apply w-full h-full object-contain transition-transform duration-300 group-hover:scale-105;}
+  .card-owner-badge {@apply absolute bottom-16 left-3 rounded-full p-1 shadow bg-purple-500 text-white;}
+  .card-overlay {@apply absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4;}
+
+  .card-action-icon {@apply p-3 rounded-full transition-colors duration-300; }
+  .card-action-edit-dark { @apply bg-[#BDD63B] text-black hover:bg-[#dcfa3e]; }
+  .card-action-edit-light { @apply bg-[#263248] text-white hover:bg-[#12264a]; }
+
+  .card-action-delete { @apply bg-red-600 hover:bg-red-700 text-white; }
+  .card-body {@apply p-5 text-center;}
+  .card-title {@apply text-lg font-semibold truncate;}
+  .card-description {@apply text-sm opacity-80 truncate;}
+  .card-action-scale {@apply transition-transform duration-200 hover:scale-150 active:scale-150;}
+}
+
+

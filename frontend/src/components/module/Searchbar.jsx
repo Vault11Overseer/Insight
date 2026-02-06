@@ -15,12 +15,10 @@ export default function SearchBar({
   // CONTEXT
   const { darkMode } = useUserData();
 
-  // RETURN
   return (
     // SEARCH CONTAINER
     <div className="relative w-full">
-
-      {/* ICON */}
+      {/* SEARCH ICON */}
       <SearchIcon
         size={18}
         className={`absolute left-4 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none ${
@@ -28,7 +26,7 @@ export default function SearchBar({
         }`}
       />
 
-      {/* INPUT */}
+      {/* SEARCH INPUT */}
       <input
         type="text"
         value={value}

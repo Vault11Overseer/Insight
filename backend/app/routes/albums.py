@@ -1,3 +1,5 @@
+# backend/app/routes/albums.py
+
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -102,7 +104,9 @@ def get_album(
 @router.put("/{album_id}", response_model=AlbumRead)
 def update_album(
     album_id: int,
-    data: AlbumUpdate,
+    title: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    default_image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -113,10 +117,21 @@ def update_album(
     if current_user.role != "admin" and album.owner_user_id != current_user.id:
         raise HTTPException(403, "Not authorized")
 
-    if data.title is not None:
-        album.title = data.title
-    if data.description is not None:
-        album.description = data.description
+    if title is not None:
+        album.title = title
+    if description is not None:
+        album.description = description
+
+    if default_image:
+        # Delete old image if exists
+        if album.cover_image_s3_key:
+            delete_s3_object(album.cover_image_s3_key)
+
+        s3_key, _ = upload_file_to_s3(
+            default_image,
+            s3_prefix=f"album_covers/{current_user.id}",
+        )
+        album.cover_image_s3_key = s3_key
 
     db.commit()
     db.refresh(album)
@@ -145,3 +160,26 @@ def delete_album(
     db.delete(album)
     db.commit()
     return {"detail": "Album deleted"}
+
+
+# ---------------------------
+# GET ALBUM IMAGES
+# ---------------------------
+@router.get("/{album_id}/images")
+def get_album_images(
+    album_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    album = db.get(Album, album_id)
+    if not album:
+        raise HTTPException(404, "Album not found")
+
+    return [
+        {
+            "id": img.id,
+            "title": img.title,
+            "url": generate_signed_url(img.s3_key) if img.s3_key else None,
+        }
+        for img in album.images
+    ]

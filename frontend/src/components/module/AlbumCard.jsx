@@ -2,77 +2,84 @@
 // ALBUM CARD
 
 // IMPORTS
-// import React from "react";
-import { Image, User, Trash2, Pencil } from "lucide-react";
+import { User, Trash2, Pencil } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 import { useNavigate } from "react-router-dom";
 
 // EXPORT ALBUM CARD
-export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}) {
-  // STATE
+export default function AlbumCard({
+  album,
+  canEdit,
+  onOpen,
+  onDelete,
+  darkMode,
+}) {
+  // NAVIGATE STATE
   const navigate = useNavigate();
 
+  // HANDLE OPEN ALBUM
+  const handleOpen = (e) => {
+    e.stopPropagation();
+    navigate(`/albums/${album.id}`); // AlbumView page
+  };
+
+  // HANDLE DELETE
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    onDelete(album);
+  };
+
+  // RENDER
   return (
-    <div className={`relative rounded-2xl overflow-hidden shadow group bg-white dark:bg-gray-800  ${
-      darkMode
-        ? "border border-[#BDD63B]"
-        : "border border-[#263248]"
-    }`}
+    <div
+      className={`group card ${darkMode ? "card-dark" : "card-light"}`}
+      onClick={() => onOpen(album)}
     >
       {/* IMAGE */}
-      <div className="relative h-48 w-full">
+      <div className="card-image-wrapper">
         <img
-          src={album.cover_image_url?.trim() ? album.cover_image_url : defaultImage}
+          src={album.cover_image_url?.trim() || defaultImage}
           alt={album.title}
           onError={(e) => {
             e.target.onerror = null;
             e.target.src = defaultImage;
           }}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+          className="card-image"
         />
 
-        {/* OWNER ICON */}
-        {album.owner_user_id && (
-          <div className="absolute top-2 left-2 bg-white text-red-500 rounded-full p-1 shadow">
-            <User size={16} />
-          </div>
+        {/* HOVER ACTION ICONS */}
+        <div className="card-overlay" onClick={(e) => e.stopPropagation()}>
+          {/* EDIT ICON */}
+          <button
+            onClick={handleOpen}
+            className={`card-action-icon  card-action-scale ${darkMode ? "card-action-edit-dark" : "card-action-edit-light"}`}
+            title="View / Edit Album"
+          >
+            <Pencil size={18} />
+          </button>
+
+          {/* DELETE ICON */}
+          <button
+            onClick={handleDelete}
+            className="card-action-icon card-action-delete card-action-scale"
+            title="Delete Album"
+          >
+        <Trash2 size={18} />
+      </button>
+    </div>
+  </div>
+      {/* OWNER BADGE */}
+      {album.owner_user_id && (
+        <div className="card-owner-badge">
+          <User size={14} />
+        </div>
+      )}
+      {/* ALBUM INFO */}
+      <div className="card-body">
+        <h3 className="card-title">{album.title}</h3>
+        {album.description && (
+          <p className="card-description">{album.description}</p>
         )}
-
-        {/* ACTIONS */}
-        {canEdit && (
-          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4">
-            {/* VIEW / EDIT */}
-            <button
-          onClick={() => navigate(`/albums/${album.id}`)}
-          className="bg-green-500 hover:bg-green-600 p-3 rounded-full text-white"
-          title="View / Edit Album"
-        >
-              <Pencil size={18} />
-            </button>
-
-            {/* DELETE */}
-            <button
-              onClick={() => onDelete(album)}
-              className="bg-red-600 hover:bg-red-700 p-3 rounded-full text-white"
-              title="Delete Album"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* TITLE */}
-      {/* <div className="p-3 "> */}
-      <div
-      className={`p-5  ${
-        darkMode
-          ? "bg-[#BDD63B] text-black"
-          : "bg-[#263248] text-white"
-      }`}
-    >
-        <h3 className="font-semibold truncate">{album.title}</h3>
-        <p className="truncate">{album.description}</p>
       </div>
     </div>
   );

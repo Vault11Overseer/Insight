@@ -1,16 +1,19 @@
 // frontend/src/pages/AlbumView.jsx
-
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/module/Header";
-import { API_BASE_URL } from "../../services/api";
+import { getAlbum, getAlbumImages, updateAlbumWithCover } from "../../services/api";
 import defaultAlbumImage from "/default_album_image.png";
 import { format } from "date-fns";
+import ImageCard from "../../components/module/ImageCard";
+import { useUserData } from "../../services/UserDataContext";
 
 export default function AlbumView() {
   const { albumId } = useParams();
+  const { user, canEditAlbum } = useUserData();
 
   const [album, setAlbum] = useState(null);
+  const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [title, setTitle] = useState("");
@@ -18,52 +21,40 @@ export default function AlbumView() {
   const [coverImage, setCoverImage] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
 
-  const [darkMode, setDarkMode] = useState(() => {
-    return JSON.parse(localStorage.getItem("darkMode")) ?? true;
-  });
-
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const [darkMode, setDarkMode] = useState(() => JSON.parse(localStorage.getItem("darkMode")) ?? true);
 
   // =========================
   // EFFECTS
   // =========================
   useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-
+    document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
   useEffect(() => {
-    const fetchAlbum = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/albums/${albumId}`, {
-          credentials: "include",
-        });
-
-        if (!res.ok) throw new Error("Album not found");
-
-        const data = await res.json();
-        setAlbum(data);
-        setTitle(data.title);
-        setDescription(data.description || "");
+        const [albumData, imagesData] = await Promise.all([
+          getAlbum(albumId),
+          getAlbumImages(albumId),
+        ]);
+        setAlbum(albumData);
+        setTitle(albumData.title);
+        setDescription(albumData.description || "");
+        setImages(imagesData);
       } catch (err) {
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAlbum();
+    fetchData();
   }, [albumId]);
 
   // =========================
   // HELPERS
   // =========================
-  const canEdit =
-    album &&
-    (album.owner_user_id === currentUser?.id ||
-      currentUser?.role === "admin");
+  const canEdit = album && canEditAlbum(album);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -84,28 +75,14 @@ export default function AlbumView() {
 
   const handleUpdateAlbum = async (e) => {
     e.preventDefault();
+    if (!album) return;
 
     try {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description || "");
-
-      if (coverImage) {
-        formData.append("default_image", coverImage);
-      }
-
-      const res = await fetch(`${API_BASE_URL}/albums/${album.id}`, {
-        method: "PUT",
-        body: formData,
-        credentials: "include",
-      });
-
-      if (!res.ok) throw new Error("Failed to update album");
-
-      const updated = await res.json();
+      const updated = await updateAlbumWithCover(album.id, { title, description }, coverImage);
       setAlbum(updated);
       setCoverImage(null);
       setCoverPreview(null);
+      alert("Album updated successfully!");
     } catch (err) {
       console.error(err);
       alert("Failed to update album.");
@@ -119,15 +96,11 @@ export default function AlbumView() {
   // RENDER
   // =========================
   return (
-    <div
-      className={`min-h-screen p-8 transition-colors ${
-        darkMode ? "bg-black text-white" : "bg-white text-black"
-      }`}
-    >
+    <div className={`page-set ${darkMode ? "page-set-dark" : "page-set-light"}`}>
       {/* HEADER */}
       <Header
         introProps={{
-          user: currentUser,
+          user,
           darkMode,
           albumsCount: 0,
           imagesCount: album.image_count ?? 0,
@@ -139,72 +112,70 @@ export default function AlbumView() {
       />
 
       {/* ALBUM HEADER */}
-      <section className="my-10 grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-        <div className="md:col-span-2 space-y-3">
-          <h1 className="text-4xl font-bold">{album.title}</h1>
-          <p className="opacity-80">
-            {album.description || "No description provided."}
-          </p>
-
-          <div className="text-sm opacity-70 space-y-1">
+      <section className="view-header grid grid-cols-1 md:grid-cols-3 gap-8 items-center my-10">
+        <div className="view-info md:col-span-2 space-y-3">
+          <h1 className="view-title">{album.title}</h1>
+          <p className="view-description">{album.description || "No description provided."}</p>
+          <div className="view-meta text-sm opacity-70 space-y-1">
             <p>Created by {album.owner_user?.username}</p>
             <p>{album.image_count ?? 0} images</p>
-            <p>
-              Created on {format(new Date(album.created_at), "PPP")}
-            </p>
+            <p>Created on {format(new Date(album.created_at), "PPP")}</p>
           </div>
         </div>
 
         <img
-          src={album.cover_image_url || defaultAlbumImage}
+          src={coverPreview || album.cover_image_url || defaultAlbumImage}
           alt="Album cover"
-          className="w-full h-48 object-contain rounded-xl border"
+          className="view-cover rounded-xl border"
         />
+      </section>
+
+      {/* IMAGES GRID */}
+      <section className="my-10">
+        <h2 className="text-2xl font-semibold mb-6">Album Images</h2>
+        {images.length === 0 ? (
+          <p className="opacity-70">No images in this album.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+            {images.map((img) => (
+              <ImageCard key={img.id} image={img} onOpen={() => {}} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* EDIT FORM */}
       {canEdit && (
-        <section className="my-10 max-w-2xl">
+        <section className="view-edit-section my-10 max-w-2xl">
           <form
             onSubmit={handleUpdateAlbum}
-            className={`p-6 rounded-2xl shadow space-y-4 ${
-              darkMode
-                ? "bg-[#BDD63B] text-black"
-                : "bg-[#263248] text-white"
-            }`}
+            className={`form-container ${darkMode ? "form-dark" : "form-light"}`}
           >
-            <h2 className="text-xl font-semibold">Edit Album</h2>
+            <h2 className="view-form-title">Edit Album</h2>
 
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white text-black outline-none"
+              className="inputs-set inputs-set-light"
               required
             />
 
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white text-black outline-none resize-none"
+              className="inputs-set inputs-set-light resize-none"
               rows={3}
             />
 
             {/* COVER IMAGE */}
-            <div className="space-y-2">
+            <div className="view-cover-input space-y-2">
               <p className="font-medium">Album Cover Image</p>
 
               {coverPreview ? (
                 <div className="relative">
-                  <img
-                    src={coverPreview}
-                    className="w-full h-48 object-contain rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRemoveImage}
-                    className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded"
-                  >
+                  <img src={coverPreview} className="view-cover rounded-lg" />
+                  <button type="button" onClick={handleRemoveImage} className="button-remove-image">
                     Remove
                   </button>
                 </div>
@@ -218,14 +189,7 @@ export default function AlbumView() {
               )}
             </div>
 
-            <button
-              type="submit"
-              className={`px-6 py-2 rounded-full font-semibold ${
-                darkMode
-                  ? "bg-[#263248] text-white hover:bg-[#122342]"
-                  : "bg-[#BDD63B] text-black hover:bg-[#a4c12d]"
-              }`}
-            >
+            <button type="submit" className={`button-set ${darkMode ? "button-set-light" : "button-set-dark"}`}>
               Save Changes
             </button>
           </form>

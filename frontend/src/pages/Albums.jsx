@@ -7,35 +7,24 @@ import Header from "../components/module/Header";
 import AlbumCard from "../components/module/AlbumCard";
 import { getAlbums, createAlbum, deleteAlbum } from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { LibraryBig } from "lucide-react";
+import { LibraryBig, User } from "lucide-react";
 import defaultAlbumImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
 
 // ALBUMS
 export default function Albums() {
-  // =========================
-  // DATA STATE
-  // =========================
+  // ALBUM STATE
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // =========================
   // FORM STATE
-  // =========================
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
-
-  // =========================
-  // DELETE CONFIRMATION STATE
-  // =========================
+  // DELETE MODAL STATE
   const [albumToDelete, setAlbumToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  // =========================
   // USER STATE
-  // =========================
   const {
     user,
     darkMode,
@@ -43,7 +32,7 @@ export default function Albums() {
     setAlbumsCount,
     canEditAlbum,
   } = useUserData();
-
+  // NAVIGATE STATE
   const navigate = useNavigate();
 
   // =========================
@@ -88,23 +77,18 @@ export default function Albums() {
 
   const confirmDelete = async () => {
     if (!albumToDelete) return;
-
     setIsDeleting(true);
     try {
       await deleteAlbum(albumToDelete.id);
       setAlbums((prev) => prev.filter((a) => a.id !== albumToDelete.id));
       setAlbumsCount((prev) => Math.max(prev - 1, 0));
+      setAlbumToDelete(null);
     } catch (err) {
       console.error("Delete failed:", err);
       alert("Failed to delete album.");
     } finally {
       setIsDeleting(false);
-      setAlbumToDelete(null);
     }
-  };
-
-  const cancelDelete = () => {
-    setAlbumToDelete(null);
   };
 
   // =========================
@@ -275,7 +259,18 @@ export default function Albums() {
 
       {/* USER ALBUMS */}
       <section >
-        <h2 className="section-header">Your Albums</h2>
+
+        <h2 className="section-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ display: 'flex', alignItems: 'center' }}>
+            <span>Your Albums</span>
+            <div
+              className={"rounded-full p-2 shadow bg-purple-500 text-white ml-2 ;"}
+             
+            >
+              <User size={16} />
+            </div>
+          </span>
+        </h2>
 
         {albums.filter((a) => a.owner_user_id === user?.id).length === 0 ? (
           <p className="opacity-70">No albums uploaded yet.</p>
@@ -299,30 +294,28 @@ export default function Albums() {
 
       {/* DELETE CONFIRMATION MODAL */}
       {albumToDelete && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl w-full max-w-md space-y-4">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className={`p-6 rounded-xl w-full max-w-md space-y-4 shadow-2xl ${darkMode ? "bg-zinc-900 text-white border border-zinc-700" : "bg-white text-black"}`}>
             <h3 className="text-xl font-semibold">Delete Album</h3>
             <p>
-              Are you sure you want to delete{" "}
-              <span className="font-semibold">
-                {albumToDelete.title}
-              </span>
-              ?
+              Are you sure you want to delete <span className="font-semibold">"{albumToDelete.title}"</span>?
+              <br />
+              <span className="text-sm opacity-70">This action cannot be undone.</span>
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2">
               <button
-                onClick={cancelDelete}
-                className="px-4 py-2 rounded border"
+                onClick={() => setAlbumToDelete(null)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${darkMode ? "bg-zinc-800 hover:bg-zinc-700" : "bg-gray-200 hover:bg-gray-300"}`}
                 disabled={isDeleting}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="px-4 py-2 rounded bg-red-600 text-white"
+                className="px-4 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
                 disabled={isDeleting}
               >
-                {isDeleting ? "Deleting…" : "Delete"}
+                {isDeleting ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
