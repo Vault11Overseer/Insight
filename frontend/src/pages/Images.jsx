@@ -2,16 +2,16 @@
 // IMAGES
 
 // IMPORTS
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Header from "../components/module/Header";
 import ImageCard from "../components/module/ImageCard";
 import SearchBar from "../components/module/Searchbar";
-import { uploadImage, getImages } from "../services/api";
+import { uploadImage, deleteImage } from "../services/api";
 import { useUserData } from "../services/UserDataContext";
 import { ImageUp, User } from "lucide-react";
 import defaultImage from "/default_album_image.png";
-
-// EXPORT
+import { useNavigate } from "react-router-dom"
+// IMAGES
 export default function Images() {
   // =========================
   // USER STATE
@@ -21,14 +21,11 @@ export default function Images() {
     darkMode,
     setDarkMode,
     canEditImage,
+    refreshUserImages,
     setImagesCount,
+    userImages,
+    loadingUserImages,
   } = useUserData();
-
-  // =========================
-  // IMAGE DATA
-  // =========================
-  const [images, setImages] = useState([]);
-  const [loadingImages, setLoadingImages] = useState(true);
 
   // =========================
   // SEARCH STATE
@@ -44,24 +41,8 @@ export default function Images() {
   const [imagePreview, setImagePreview] = useState(null);
   const [userTags, setUserTags] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-
-  // =========================
-  // FETCH USER IMAGES
-  // =========================
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const data = await getImages();
-        setImages(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch images:", err);
-        setImages([]);
-      } finally {
-        setLoadingImages(false);
-      }
-    };
-    fetchImages();
-  }, []);
+  const [deletingImageId, setDeletingImageId] = useState(null);
+  const navigate = useNavigate();
 
   // =========================
   // IMAGE PREVIEW HANDLING
@@ -79,7 +60,7 @@ export default function Images() {
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    const input = document.getElementById("image-input");
+    const input = document.getElementById("cover-image-input");
     if (input) input.value = "";
   };
 
@@ -95,8 +76,9 @@ export default function Images() {
     if (!userTags.trim()) return alert("At least one tag is required");
 
     setIsUploading(true);
+
     try {
-      const newImage = await uploadImage(
+      await uploadImage(
         imageFile,
         title,
         description,
@@ -104,7 +86,7 @@ export default function Images() {
         userTags.split(",").map((t) => t.trim())
       );
 
-      setImages((prev) => [newImage, ...prev]);
+      await refreshUserImages();
       setImagesCount((prev) => prev + 1);
 
       // RESET FORM
@@ -121,10 +103,33 @@ export default function Images() {
   };
 
   // =========================
+  // DELETE IMAGE (DB + S3)
+  // =========================
+  const handleDeleteImage = async (image) => {
+    if (!canEditImage(image)) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this image? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    setDeletingImageId(image.id);
+
+    try {
+      await deleteImage(image.id); // BACKEND HANDLES DB + S3
+      await refreshUserImages();
+      setImagesCount((prev) => Math.max(prev - 1, 0));
+    } catch (err) {
+      console.error("DELETE IMAGE FAILED:", err);
+      alert(err.message || "Failed to delete image");
+    } finally {
+      setDeletingImageId(null);
+    }
+  };
+
+  // =========================
   // FILTER USER IMAGES
   // =========================
-  const userImages = images.filter((img) => img.uploader_user_id === user?.id);
-
   const filteredImages = userImages.filter((img) => {
     if (!searchTerm) return true;
     return (
@@ -165,7 +170,6 @@ export default function Images() {
             type="text"
             value={title}
             placeholder="San Juan mountains"
-
             onChange={(e) => setTitle(e.target.value)}
             className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
             required
@@ -183,7 +187,7 @@ export default function Images() {
           />
 
           {/* TAGS */}
-          <label className="block font-medium">Tags (One tag is required (comma separated))</label>
+          <label className="block font-medium">Tags (one tag is required, comma separated)</label>
           <input
             type="text"
             value={userTags}
@@ -194,9 +198,7 @@ export default function Images() {
 
           {/* IMAGE FILE */}
           <div className="space-y-2 file-preview-container">
-            <label className="block font-medium">
-              Image Upload (required)
-            </label>
+            <label className="block font-medium">Image Upload (required)</label>
             {imagePreview ? (
               <div className="relative">
                 <img
@@ -219,21 +221,12 @@ export default function Images() {
                   darkMode ? "inputs-set-dark" : "inputs-set-light"
                 }`}
               >
-                <img
-                  src={defaultImage}
-                  alt="Default album"
-                  className="mx-auto mb-4 h-28 object-contain"
-                />
-                <p>
-                  Only upload one image at a time.
-                </p>
+            <ImageUp size={80} className="mx-auto mb-4 h-28 object-contain opacity-70"/>
+
+                <p>Only upload one image at a time.</p>
                 <p>
                   <span className="font-semibold">Click to upload</span> or{" "}
-                  <span className="font-semibold">drag & drop</span> your images.
-                </p>
-                <p className="text-sm">
-                  <span className="font-semibold">PNG, JPG, WEBP</span> up to{" "}
-                  <span className="font-semibold">60MB</span>
+                  <span className="font-semibold">drag & drop</span>
                 </p>
                 <input
                   id="cover-image-input"
@@ -259,7 +252,6 @@ export default function Images() {
 
       {/* YOUR IMAGES */}
       <section>
-        {/* USER ALBUMS */}
         <h2 className="section-header flex items-center gap-2">
           <span>Your Images</span>
           <div className="rounded-full p-2 shadow bg-purple-500 text-white">
@@ -267,9 +259,12 @@ export default function Images() {
           </div>
         </h2>
 
-        {/* EMPTY STATE / SEARCH BAR */}
-        {userImages.length === 0 ? (
-          <p className="opacity-70 mt-4">No images found, please upload images of your own to View, Update, and Delete them here.</p>
+        {loadingUserImages ? (
+          <p className="opacity-70 mt-4">Loading your images...</p>
+        ) : userImages.length === 0 ? (
+          <p className="opacity-70 mt-4">
+            No images found. Upload images to manage them here.
+          </p>
         ) : (
           <>
             <SearchBar value={searchTerm} onChange={setSearchTerm} />
@@ -280,7 +275,8 @@ export default function Images() {
                   image={image}
                   darkMode={darkMode}
                   canEdit={canEditImage(image)}
-                  onOpen={() => {}}
+                  onOpen={(img) => navigate(`/images/${img.id}`)}
+                  onDelete={handleDeleteImage}
                 />
               ))}
             </div>

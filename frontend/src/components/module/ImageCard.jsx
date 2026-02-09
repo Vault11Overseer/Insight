@@ -1,22 +1,27 @@
 // frontend/src/components/module/ImageCard.jsx
 // IMAGE CARD
-// DONE
+
 
 // IMPORTS
 import React from "react";
-import { Eye } from "lucide-react";
+import { Eye, Trash2, User } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 
 // EXPORT IMAGE CARD
-export default function ImageCard({
-  image,
-  onOpen,
-  darkMode,
-}) {
+export default function ImageCard({ image, onOpen, onDelete, canEdit, darkMode,}) {
+  
   // HANDLE OPEN IMAGE
   const handleOpen = (e) => {
     e.stopPropagation();
     onOpen(image);
+  };
+
+  // HANDLE DELETE IMAGE
+  const handleDelete = (e) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(image);
+    }
   };
 
   // RESOLVE IMAGE SOURCE
@@ -44,7 +49,7 @@ export default function ImageCard({
           className="card-image"
         />
 
-        {/* HOVER ACTIONS */}
+        {/* HOVER ACTION ICONS */}
         <div
           className="card-overlay"
           onClick={(e) => e.stopPropagation()}
@@ -61,14 +66,30 @@ export default function ImageCard({
           >
             <Eye size={18} />
           </button>
+
+          {/* DELETE ICON (ONLY IF USER CAN EDIT) */}
+          {canEdit && (
+            <button
+              onClick={handleDelete}
+              className="card-action-icon card-action-delete card-action-scale"
+              title="Delete Image"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
         </div>
       </div>
 
+      {/* OWNER BADGE */}
+      {image.uploader_user_id && (
+        <div className="card-owner-badge">
+          <User size={14} />
+        </div>
+      )}
+
       {/* IMAGE INFO */}
       <div className="card-body">
-        <h3 className="card-title">
-          {image.title}
-        </h3>
+        <h3 className="card-title">{image.title}</h3>
 
         {image.description && (
           <p className="card-description">

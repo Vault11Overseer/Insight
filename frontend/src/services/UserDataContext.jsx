@@ -1,15 +1,16 @@
-// frontend/src/services/UserDataContext.jsx
 // USER DATA CONTEXT
 
 // IMPORTS
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
-import { getAlbums, getImages } from "./api";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  getAlbums,
+  getImages,
+  uploadImage,
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  checkFavorite,
+} from "./api";
 
 // STATE
 const UserDataContext = createContext(null);
@@ -56,13 +57,11 @@ export function UserDataProvider({ children }) {
     return album.owner_user_id === user.id;
   };
 
-  // PERMISSIONS (already inside UserDataProvider)
   const canEditImage = (image) => {
     if (!user || !image) return false;
     if (isAdmin) return true;
     return image.uploader_user_id === user.id;
   };
-
 
   // =========================
   // UI STATE
@@ -78,6 +77,32 @@ export function UserDataProvider({ children }) {
   const [imagesCount, setImagesCount] = useState(0);
 
   // =========================
+  // USER-SCOPED IMAGES
+  // =========================
+  const [userImages, setUserImages] = useState([]);
+  const [loadingUserImages, setLoadingUserImages] = useState(true);
+
+  const refreshUserImages = useCallback(async () => {
+    if (!user) return;
+
+    setLoadingUserImages(true);
+    try {
+      const allImages = await getImages();
+      const filtered = allImages.filter((img) =>
+        isAdmin ? true : img.uploader_user_id === user.id
+      );
+      setUserImages(filtered);
+      setImagesCount(filtered.length);
+    } catch (err) {
+      console.error("Failed to fetch user images:", err);
+      setUserImages([]);
+      setImagesCount(0);
+    } finally {
+      setLoadingUserImages(false);
+    }
+  }, [user, isAdmin]);
+
+  // =========================
   // SYNC USER TO STORAGE
   // =========================
   useEffect(() => {
@@ -86,15 +111,14 @@ export function UserDataProvider({ children }) {
       sessionStorage.removeItem("user");
       setAlbumsCount(0);
       setImagesCount(0);
+      setUserImages([]);
       return;
     }
 
-    // PRESERVE ORIGINAL STORAGE CHOICE
     const storage =
       sessionStorage.getItem("user") !== null
         ? sessionStorage
         : localStorage;
-
     storage.setItem("user", JSON.stringify(user));
   }, [user]);
 
@@ -119,21 +143,14 @@ export function UserDataProvider({ children }) {
    */
   const refreshCounts = useCallback(async () => {
     if (!user) return;
-
     try {
-      const [albums, images] = await Promise.all([
-        getAlbums(),
-        getImages(),
-      ]);
-
+      const [albums, images] = await Promise.all([getAlbums(), getImages()]);
       const userAlbumsCount = albums.filter(
         (a) => a.owner_user_id === user.id
       ).length;
-
       const userImagesCount = images.filter(
         (img) => img.uploader_user_id === user.id
       ).length;
-
       setAlbumsCount(userAlbumsCount);
       setImagesCount(userImagesCount);
     } catch (err) {
@@ -141,10 +158,52 @@ export function UserDataProvider({ children }) {
     }
   }, [user]);
 
+  // =========================
+  // FAVORITES STATE
+  // =========================
+  const [favorites, setFavorites] = useState([]);
+
+  const refreshFavorites = useCallback(async () => {
+    if (!user) return;
+    try {
+      const favs = await getFavorites();
+      setFavorites(favs);
+    } catch (err) {
+      console.error("Failed to fetch favorites:", err);
+      setFavorites([]);
+    }
+  }, [user]);
+
+  const addToFavorites = async (imageId) => {
+    try {
+      await addFavorite(imageId);
+      await refreshFavorites();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const removeFromFavorites = async (imageId) => {
+    try {
+      await removeFavorite(imageId);
+      await refreshFavorites();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const isFavorite = (imageId) => {
+    return favorites.some((f) => f.image_id === imageId);
+  };
+
+  // =========================
   // INITIAL LOAD
+  // =========================
   useEffect(() => {
+    refreshUserImages();
     refreshCounts();
-  }, [refreshCounts]);
+    refreshFavorites();
+  }, [refreshUserImages, refreshCounts, refreshFavorites]);
 
   // =========================
   // RETURN CONTEXT PROVIDER
@@ -158,6 +217,11 @@ export function UserDataProvider({ children }) {
         isAuthenticated,
         isAdmin,
         logout,
+
+        // IMAGES
+        userImages,
+        refreshUserImages,
+        loadingUserImages,
 
         // UI
         darkMode,
@@ -173,6 +237,12 @@ export function UserDataProvider({ children }) {
         // PERMISSIONS
         canEditAlbum,
         canEditImage,
+
+        // FAVORITES
+        favorites,
+        addToFavorites,
+        removeFromFavorites,
+        isFavorite,
       }}
     >
       {children}

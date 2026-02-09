@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/module/Header";
-import { API_BASE_URL } from "../../services/api";
+import { getImage, updateImage } from "../../services/api";
 import { format } from "date-fns";
+import { useUserData } from "../../services/UserDataContext";
 
 export default function ImageView() {
   const { imageId } = useParams();
+  const { user } = useUserData();
 
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,31 +15,22 @@ export default function ImageView() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== "undefined") {
-      return JSON.parse(localStorage.getItem("darkMode")) ?? true;
-    }
-    return true;
-  });
-
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const [darkMode, setDarkMode] = useState(
+    () => JSON.parse(localStorage.getItem("darkMode")) ?? true
+  );
 
   // =========================
   // EFFECTS
   // =========================
   useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-
+    document.documentElement.classList.toggle("dark", darkMode);
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/images/${imageId}`);
-        const data = await res.json();
-
+        const data = await getImage(imageId);
         setImage(data);
         setTitle(data.title);
         setDescription(data.description || "");
@@ -51,23 +44,21 @@ export default function ImageView() {
     fetchImage();
   }, [imageId]);
 
+  // =========================
+  // HELPERS
+  // =========================
   const canEdit =
     image &&
-    (image.owner_user_id === currentUser?.id ||
-      currentUser?.role === "admin");
+    (image.uploader_user_id === user?.id || user?.role === "admin");
 
   const handleUpdateImage = async (e) => {
     e.preventDefault();
+    if (!image) return;
 
     try {
-      const res = await fetch(`${API_BASE_URL}/images/${image.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description }),
-      });
-
-      const updated = await res.json();
+      const updated = await updateImage(image.id, { title, description });
       setImage(updated);
+      alert("Image updated successfully!");
     } catch (err) {
       console.error("Failed to update image:", err);
       alert("Failed to update image.");
@@ -81,15 +72,11 @@ export default function ImageView() {
   // RENDER
   // =========================
   return (
-    <div
-      className={`min-h-screen p-8 transition-colors duration-300 ${
-        darkMode ? "bg-black text-white" : "bg-white text-black"
-      }`}
-    >
+    <div className={`page-set ${darkMode ? "page-set-dark" : "page-set-light"}`}>
       {/* HEADER */}
       <Header
         introProps={{
-          user: currentUser,
+          user,
           darkMode,
           albumsCount: 0,
           imagesCount: 1,
@@ -100,73 +87,56 @@ export default function ImageView() {
         }}
       />
 
-      {/* IMAGE DISPLAY */}
-      <section className="my-10 max-w-4xl mx-auto">
-        <div
-          className={`rounded-2xl border-2 shadow overflow-hidden ${
-            darkMode
-              ? "bg-[#1E1C29] border-[#BDD63B]"
-              : "bg-gray-100 border-[#263248]"
-          }`}
-        >
-          <img
-            src={image.url}
-            alt={image.title}
-            className="w-full object-contain max-h-[70vh]"
-          />
+      {/* IMAGE HEADER */}
+      <section className="view-header">
+        <div className="view-info">
+          <h1 className="view-title">{image.title}</h1>
+          <p className="view-description">
+            {image.description || "No description provided."}
+          </p>
 
-          <div className="p-6">
-            <h1 className="text-2xl font-bold">{image.title}</h1>
-            <p className="opacity-80 mt-2">
-              {image.description || "No description provided."}
-            </p>
-
-            <div className="text-sm opacity-70 mt-4 space-y-1">
-              <p>
-                Created{" "}
-                {format(new Date(image.created_at), "PPP")}
-              </p>
-              <p>Image ID: {image.id}</p>
-              <p>Owner ID: {image.owner_user_id}</p>
-            </div>
+          <div className="view-meta">
+            <p>Uploaded by user #{image.uploader_user_id}</p>
+            <p>Created on {format(new Date(image.created_at), "PPP")}</p>
+            <p>Image ID: {image.id}</p>
           </div>
         </div>
+
+        <img
+          src={image.url}
+          alt={image.title}
+          className="view-cover h-64"
+        />
       </section>
 
       {/* EDIT IMAGE */}
       {canEdit && (
-        <section className="my-10 max-w-3xl mx-auto">
+        <section className="view-edit-section">
           <form
             onSubmit={handleUpdateImage}
-            className={`p-6 rounded-2xl border-2 shadow space-y-4 ${
-              darkMode
-                ? "bg-[#1E1C29] border-[#BDD63B]"
-                : "bg-gray-100 border-[#263248]"
-            }`}
+            className={`form-container ${darkMode ? "form-dark" : "form-light"}`}
           >
-            <h2 className="text-xl font-semibold">Edit Image</h2>
+            <h2 className="view-form-title">Edit Image</h2>
 
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white text-black outline-none"
+              className="inputs-set inputs-set-light"
               required
             />
 
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-3 rounded-lg bg-white text-black outline-none resize-none"
+              className="inputs-set inputs-set-light resize-none"
               rows={3}
             />
 
             <button
               type="submit"
-              className={`px-6 py-2 rounded-full font-semibold transition ${
-                darkMode
-                  ? "bg-[#BDD63B] text-black hover:bg-[#a4c12d]"
-                  : "bg-[#263248] text-white hover:bg-[#122342]"
+              className={`button-set ${
+                darkMode ? "button-set-dark" : "button-set-light"
               }`}
             >
               Save Changes

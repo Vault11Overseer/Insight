@@ -17,7 +17,7 @@ import Gallery from "./pages/Gallery";
 import AlbumView from "./components/page/AlbumView"
 import Settings from "./pages/auth/Settings"
 import Images from "./pages/Images"
-import ImageDetail from "./components/page/ImageDetail"
+import ImageView from "./components/page/ImageView"
 
 // OTHER ROUTES
 import { healthCheck } from "./services/api";
@@ -108,10 +108,10 @@ function App() {
 
         {/* SINGLE IMAGE */}
         <Route
-          path="/imagedetail"
+          path="/images/:imageId"
           element={
             <PrivateRoute>
-              <ImageDetail />
+              <ImageView />
             </PrivateRoute>
           }
         />

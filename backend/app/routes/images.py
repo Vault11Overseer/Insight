@@ -14,7 +14,7 @@ from app.models.tag import Tag
 from app.models.album import Album
 from app.schemas.image import ImageRead, ImageUpdate
 from app.auth.dev_auth import get_current_user
-from app.auth.s3 import (upload_file_to_s3, delete_s3_object, get_s3_url, rekognition_detect_labels,)
+from app.auth.s3 import (upload_file_to_s3, delete_s3_object, get_s3_url, generate_signed_url, rekognition_detect_labels,)
 # ROUTE
 router = APIRouter(prefix="/images", tags=["Images"])
 
@@ -31,9 +31,9 @@ def format_image(image: Image) -> ImageRead:
         id=image.id,
         uploader_user_id=image.uploader_user_id,
         s3_key=image.s3_key,
-        s3_url=get_s3_url(image.s3_key),
+        s3_url=generate_signed_url(image.s3_key) or "",
         preview_key=image.preview_key,
-        preview_url=get_s3_url(image.preview_key) if image.preview_key else None,
+        preview_url=generate_signed_url(image.preview_key) if image.preview_key else None,
         title=image.title,
         description=image.description,
         camera_make=image.camera_make,
@@ -111,11 +111,9 @@ async def create_image(
     current_user: User = Depends(get_current_user),
 ):
     # BUILD S3 PATH
-    first = sanitize_name(current_user.first_name or "user")
-    last = sanitize_name(current_user.last_name or str(current_user.id))
-    folder = f"uploads/{first}_{last}/"
+    folder = "uploads/"
 
-    s3_key, _ = upload_file_to_s3(file, current_user.id, folder=folder)
+    s3_key, _ = upload_file_to_s3(file, s3_prefix=folder)
 
     image = Image(
         uploader_user_id=current_user.id,

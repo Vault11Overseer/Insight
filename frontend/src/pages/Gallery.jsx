@@ -2,24 +2,37 @@
 // GALLERY PAGE
 
 // IMPORTS
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { GalleryVerticalEnd } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Header from "../components/module/Header";
 import SearchBar from "../components/module/Searchbar";
 import ImageCard from "../components/module/ImageCard";
 import { useUserData } from "../services/UserDataContext";
+import { getImages } from "../services/api";
 
 export default function Gallery() {
   // STATE
   const [search, setSearch] = useState("");
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { darkMode, setDarkMode } = useUserData();
+  const navigate = useNavigate();
 
-  /**
-   * IMPORTANT:
-   * Replace this with your real gallery image source
-   * (API call, context, react-query, etc.)
-   */
-  const images = []; // ← ALL images in the database (Gallery = everything)
+  // FETCH GALLERY IMAGES
+  useEffect(() => {
+    const fetchGallery = async () => {
+      try {
+        const data = await getImages();
+        setImages(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error("Failed to fetch gallery:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGallery();
+  }, []);
 
   // =========================
   // FILTERED IMAGES
@@ -59,14 +72,16 @@ export default function Gallery() {
 
       {/* GALLERY GRID */}
       <div className="display-grid">
-        {filteredImages.length > 0 ? (
+        {loading ? (
+          <div className={`col-span-full text-center opacity-70 ${darkMode ? "text-white" : "text-black"}`}>
+            Loading gallery...
+          </div>
+        ) : filteredImages.length > 0 ? (
           filteredImages.map((image) => (
             <ImageCard
               key={image.id}
               image={image}
-              onOpen={() => {
-                /* navigate to ImageView here */
-              }}
+              onOpen={(img) => navigate(`/images/${img.id}`)}
               darkMode={darkMode}
             />
           ))

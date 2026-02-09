@@ -149,9 +149,10 @@ export default function Albums() {
 
       <hr className={`hr ${darkMode ? "hr-dark" : "hr-light"}`} />
 
-      {/* CREATE FORM */}
+      {/* CREATE ALBUM FORM HEADER */}
       <h2 className="section-header">Create New Album</h2>
 
+      {/* CREATE FORM */}
       <section className={`form-container ${darkMode ? "form-dark" : "form-light"}`}>
         <form onSubmit={handleCreate} className="space-y-4">
           {/* TITLE */}
@@ -167,7 +168,7 @@ export default function Albums() {
             required
           />
 
-          {/* DESCRIPTION */}
+          {/* ALBUM DESCRIPTION */}
           <label className="block font-medium">
             Album description (optional)
           </label>
@@ -205,26 +206,26 @@ export default function Albums() {
             ) : (
               <label
                 htmlFor="cover-image-input"
-                className={`inputs-set cursor-pointer text-center py-8 ${
+                className={`inputs-set cursor-pointer text-center py-8 text-slate-700 ${
                   darkMode ? "inputs-set-dark" : "inputs-set-light"
                 }`}
               >
                 <img
                   src={defaultAlbumImage}
                   alt="Default album"
-                  className="mx-auto mb-4 h-28 object-contain"
+                  className="mx-auto mb-4 h-28 object-contain inset-0 opacity-70"
                 />
-                <p>
+                <p className="text-slate-700" >
                   If no album image is selected, the default album image above
                   will be used.
                 </p>
-                <p>
-                  <span className="font-semibold">Click to upload</span> or{" "}
-                  <span className="font-semibold">drag & drop</span>
+                <p className="text-slate-700">
+                  <span className="font-semibold text-slate-700">Click to upload</span> or{" "}
+                  <span className="font-semibold text-slate-700">drag & drop</span>
                 </p>
-                <p className="text-sm">
-                  <span className="font-semibold">PNG, JPG, WEBP</span> up to{" "}
-                  <span className="font-semibold">60MB</span>
+                <p className="text-sm text-slate-700">
+                  <span className="font-semibold text-slate-700">PNG, JPG, WEBP</span> up to{" "}
+                  <span className="font-semibold text-slate-700">60MB</span>
                 </p>
                 <input
                   id="cover-image-input"
