@@ -9,12 +9,13 @@ import {
   getAlbumImages,
   updateAlbumWithCover,
   removeAlbumCover,
+  deleteImage,
 } from "../../services/api";
 import defaultAlbumImage from "/default_album_image.png";
 import { format } from "date-fns";
 import ImageCard from "../../components/module/ImageCard";
 import { useUserData } from "../../services/UserDataContext";
-import { Album, User } from "lucide-react";
+import { Album, Images } from "lucide-react";
 import SearchBar from "../module/Searchbar";
 
 // ALBUM VIEW
@@ -23,12 +24,14 @@ export default function AlbumView() {
   const navigate = useNavigate();
 
   // CONTEXT
-  const { user, darkMode, setDarkMode, canEditAlbum } = useUserData();
+  const { user, darkMode, setDarkMode, canEditAlbum, canEditImage } = useUserData();
 
   // DATA STATE
   const [album, setAlbum] = useState(null);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [deletingImageId, setDeletingImageId] = useState(null);
+  
 
   // FORM STATE
   const [title, setTitle] = useState("");
@@ -131,6 +134,29 @@ export default function AlbumView() {
     }
   };
 
+  // =========================
+  // DELETE IMAGE
+  // =========================
+  const handleDeleteImage = async (imageToDelete) => {
+    if (!canEditImage(imageToDelete)) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete this image? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    setDeletingImageId(imageToDelete.id);
+    try {
+      await deleteImage(imageToDelete.id);
+      setImages((prev) => prev.filter((img) => img.id !== imageToDelete.id));
+    } catch (err) {
+      console.error("DELETE IMAGE FAILED:", err);
+      alert(err.message || "Failed to delete image.");
+    } finally {
+      setDeletingImageId(null);
+    }
+  };
+
   if (loading) return <p className="p-8">Loading album…</p>;
   if (!album) return <p className="p-8">Album not found.</p>;
 
@@ -148,7 +174,7 @@ export default function AlbumView() {
           size={38}
           className={darkMode ? "text-[#BDD63B]" : "text-[#1E3A8A]"}
         />
-        <h1 className="text-4xl font-semibold">Album : <span className="">{album.title}</span></h1>
+        <h1 className="text-4xl font-semibold">Album - <span className="">{album.title}</span></h1>
         <p className="text-1xl opacity-90 mt-2 font-bold">
            Manage this album
         </p>
@@ -262,14 +288,13 @@ export default function AlbumView() {
       <section className="mt-14">
         <h2 className="section-header flex items-center gap-2">
           <span>Album Images</span>
-          <div className="rounded-full p-2 shadow bg-purple-500 text-white">
-            <User size={16} />
+          <div className="rounded-full p-2 shadow bg-purple-900 text-white">
+            <Images size={16} />
           </div>
         </h2>
 
         {/* EMPTY STATE */}
-        {/* FIX THIS */}
-        {1 > 0 ? (
+        {images.length === 0 ? (
           <p className="opacity-70">No images are associated with this album yet.</p>
         ) : (
           <>
@@ -277,15 +302,18 @@ export default function AlbumView() {
             <SearchBar value={search} onChange={setSearch} />
 
             {/* ALBUM GRID */}
-             <div className="display-grid">
-            {filteredImages.map((img) => (
-              <ImageCard
-                key={img.id}
-                image={img}
-                onOpen={() => navigate(`/images/${img.id}`)}
-              />
-            ))}
-          </div>
+            <div className="display-grid py-6">
+              {filteredImages.map((img) => (
+                <ImageCard
+                  key={img.id}
+                  image={img}
+                  canEdit={canEditImage(img)}
+                  onOpen={() => navigate(`/images/${img.id}`)}
+                  onDelete={handleDeleteImage}
+                  deleting={deletingImageId === img.id}
+                />
+              ))}
+            </div>
           </>
         )}
       </section>

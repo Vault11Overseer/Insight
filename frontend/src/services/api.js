@@ -1,10 +1,14 @@
 // frontend/src/services/api.js
 // API
 
-// EXPORT
+// ----------------------
+// BASE URL
+// ----------------------
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// AUTH
+// ----------------------
+// AUTHENTICATION
+// ----------------------
 // AUTH LOGIN
 export const login = async (email, password) => {
   const formData = new FormData();
@@ -89,14 +93,7 @@ export const getImage = async (imageId) => {
   return res.json();
 };
 
-export const uploadImage = async (file, title, description, albumIds = [], userTags = []) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("title", title);
-  if (description) formData.append("description", description);
-  if (albumIds.length > 0) formData.append("album_ids", albumIds.join(","));
-  if (userTags.length > 0) formData.append("user_tags", userTags.join(","));
-
+export const uploadImage = async (formData) => {
   const headers = getAuthHeaders();
   delete headers["Content-Type"]; // Let browser set boundary for FormData
 
@@ -108,7 +105,11 @@ export const uploadImage = async (file, title, description, albumIds = [], userT
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ detail: "Failed to upload image" }));
-    throw new Error(error.detail || "Failed to upload image");
+    // Handle FastAPI validation error array by stringifying it
+    const errorMessage = typeof error.detail === "object" 
+      ? JSON.stringify(error.detail, null, 2) 
+      : (error.detail || "Failed to upload image");
+    throw new Error(errorMessage);
   }
 
   return res.json();
@@ -152,11 +153,14 @@ export const removeImageFromAlbum = async (imageId, albumId) => {
   return res.json();
 };
 
+
+
+
 // =========================
 // ALBUMS
 // =========================
 export const getAlbums = async () => {
-  const res = await fetch(`${API_BASE_URL}/albums/`, { headers: getAuthHeaders() });
+  const res = await fetch(`${API_BASE_URL}/albums`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch albums");
   return res.json();
 };
@@ -182,7 +186,7 @@ export const createAlbum = async (title, description = null, defaultImage = null
   const headers = getAuthHeaders();
   delete headers["Content-Type"]; // Let browser set the boundary for FormData
 
-  const res = await fetch(`${API_BASE_URL}/albums/`, {
+  const res = await fetch(`${API_BASE_URL}/albums`, {
     method: "POST",
     headers,
     body: formData,
@@ -241,6 +245,8 @@ export const removeAlbumCover = async (albumId) => {
 
 
 
+
+
 // =========================
 // S3 UPLOAD HELPERS
 // =========================
@@ -263,22 +269,18 @@ export const uploadFileToS3 = async (file, path) => {
   return res.json(); // returns { s3_key, s3_url }
 };
 
+
+
+
 // =========================
 // UPDATE ALBUM (EXTENDED)
 // =========================
 export const updateAlbumWithCover = async (albumId, data, coverFile = null) => {
-  let coverData = null;
-
-  if (coverFile) {
-    // Upload cover image to S3 first
-    coverData = await uploadFileToS3(coverFile, `album_images/${albumId}_cover.jpg`);
-  }
-
-  // Append S3 cover key to data if uploaded
   const formData = new FormData();
   if (data.title) formData.append("title", data.title);
   if (data.description !== undefined) formData.append("description", data.description);
-  if (coverData?.s3_key) formData.append("default_image", coverFile); // send as file for backend processing
+  // Send file directly to backend; backend handles S3 upload
+  if (coverFile) formData.append("default_image", coverFile);
 
   const headers = getAuthHeaders();
   delete headers["Content-Type"]; // let browser set boundary
@@ -298,11 +300,13 @@ export const updateAlbumWithCover = async (albumId, data, coverFile = null) => {
 };
 
 
+
+
 // =========================
 // FAVORITES
 // =========================
 export const getFavorites = async () => {
-  const res = await fetch(`${API_BASE_URL}/favorites/`, { headers: getAuthHeaders() });
+  const res = await fetch(`${API_BASE_URL}/favorites`, { headers: getAuthHeaders() });
   if (!res.ok) throw new Error("Failed to fetch favorites");
   return res.json();
 };
@@ -335,7 +339,7 @@ export const checkFavorite = async (imageId) => {
 // SHARE LINKS
 // =========================
 export const createShareLink = async (resourceType, resourceId, expiresAt = null) => {
-  const res = await fetch(`${API_BASE_URL}/share-links/`, {
+  const res = await fetch(`${API_BASE_URL}/share-links`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({ resource_type: resourceType, resource_id: resourceId, expires_at: expiresAt }),

@@ -105,8 +105,9 @@ async def create_image(
     file: UploadFile = File(...),
     title: str = Form(...),
     description: str = Form(...),
-    album_ids: Optional[str] = Form(None),
-    user_tags: Optional[str] = Form(None),
+    location_name: Optional[str] = Form(None),
+    album_ids: Optional[List[int]] = Form(None),
+    user_tags: Optional[List[str]] = Form(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -120,6 +121,7 @@ async def create_image(
         s3_key=s3_key,
         title=title,
         description=description,
+        location_name=location_name,
         image_metadata={},
     )
 
@@ -128,7 +130,7 @@ async def create_image(
 
     # ALBUMS
     if album_ids:
-        for album_id in map(int, album_ids.split(",")):
+        for album_id in album_ids:
             album = db.get(Album, album_id)
             if not album:
                 continue
@@ -138,7 +140,7 @@ async def create_image(
 
     # USER TAGS
     if user_tags:
-        for raw in user_tags.split(","):
+        for raw in user_tags:
             name = raw.strip().lower()
             if not name:
                 continue
@@ -146,7 +148,8 @@ async def create_image(
             if not tag:
                 tag = Tag(name=name, source="user")
                 db.add(tag)
-            image.tags.append(tag)
+            if tag not in image.tags:
+                image.tags.append(tag)
 
     # AWS REKOGNITION
     try:
@@ -154,12 +157,13 @@ async def create_image(
         image.image_metadata["aws"] = {"labels": labels}
 
         for label in labels:
-            name = label["name"].lower()
+            name = label.lower()
             tag = db.query(Tag).filter_by(name=name).first()
             if not tag:
                 tag = Tag(name=name, source="aws")
                 db.add(tag)
-            image.tags.append(tag)
+            if tag not in image.tags:
+                image.tags.append(tag)
 
     except Exception as e:
         image.image_metadata["aws_error"] = str(e)

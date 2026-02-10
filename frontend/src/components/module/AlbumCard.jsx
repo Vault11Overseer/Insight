@@ -3,12 +3,18 @@
 // DONE
 
 // IMPORTS
-import { User, Trash2, Pencil } from "lucide-react";
+import { BookUser, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 import { useNavigate } from "react-router-dom";
 
 // EXPORT ALBUM CARD
-export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}) {
+export default function AlbumCard({
+  album,
+  canEdit,
+  onOpen,
+  onDelete,
+  darkMode,
+}) {
   // NAVIGATE STATE
   const navigate = useNavigate();
 
@@ -23,6 +29,16 @@ export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}
     e.stopPropagation();
     onDelete(album);
   };
+
+  // IMAGE COUNT (SUPPORT MULTIPLE BACKEND SHAPES)
+  const imageCount =
+    album.image_count !== undefined && album.image_count !== null
+      ? Number(album.image_count)
+      : Array.isArray(album.images)
+      ? album.images.length
+      : Array.isArray(album.image_ids)
+      ? album.image_ids.length
+      : 0;
 
   // RENDER
   return (
@@ -39,15 +55,26 @@ export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}
             e.target.onerror = null;
             e.target.src = defaultImage;
           }}
-          className="card-image"
+          className="card-image bg-white"
         />
+
+         {/* OWNER BADGE */}
+      {album.owner_user_id && (
+        <div className="card-owner-badge">
+          <BookUser size={14} />
+        </div>
+      )}
 
         {/* HOVER ACTION ICONS */}
         <div className="card-overlay" onClick={(e) => e.stopPropagation()}>
           {/* EDIT ICON */}
           <button
             onClick={handleOpen}
-            className={`card-action-icon  card-action-scale ${darkMode ? "card-action-edit-dark" : "card-action-edit-light"}`}
+            className={`card-action-icon card-action-scale ${
+              darkMode
+                ? "card-action-edit-dark"
+                : "card-action-edit-light"
+            }`}
             title="View / Edit Album"
           >
             <Pencil size={18} />
@@ -63,18 +90,35 @@ export default function AlbumCard({ album, canEdit, onOpen, onDelete, darkMode,}
           </button>
         </div>
       </div>
-      {/* OWNER BADGE */}
-      {album.owner_user_id && (
-        <div className="card-owner-badge">
-          <User size={14} />
-        </div>
-      )}
-      {/* ALBUM INFO */}
+
+     
+
+
+        
+      {/* ALBUM TITLE */}
       <div className="card-body">
-        <h3 className="card-title">{album.title}</h3>
+        {/* IMAGE COUNT */}
+        <div className="">
+          <span className="flex flex-row gap-1 items-center">
+             {imageCount} <ImageIcon size={14} /> {imageCount === 1 ? "Image" : "Images"} 
+          </span>
+        </div>
+
+        {/* ALBUM TITLE */}
+        <h3 className="card-title">
+          {album.title}
+        </h3>
+
+        
+
+        {/* ALBUM DESCRIPTION */}
         {album.description && (
-          <p className="card-description">{album.description}</p>
+          <p className="card-description">
+            {album.description}
+          </p>
         )}
+
+        
       </div>
     </div>
   );

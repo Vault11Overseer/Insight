@@ -2,15 +2,19 @@
 // IMAGES
 
 // IMPORTS
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/module/Header";
 import ImageCard from "../components/module/ImageCard";
 import SearchBar from "../components/module/Searchbar";
-import { uploadImage, deleteImage } from "../services/api";
+import {
+  uploadImage,
+  deleteImage,
+  getAlbums,
+} from "../services/api";
 import { useUserData } from "../services/UserDataContext";
-import { ImageUp, User } from "lucide-react";
-import defaultImage from "/default_album_image.png";
-import { useNavigate } from "react-router-dom"
+import { ImageUp, SquareUser } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 // IMAGES
 export default function Images() {
   // =========================
@@ -27,6 +31,8 @@ export default function Images() {
     loadingUserImages,
   } = useUserData();
 
+  const navigate = useNavigate();
+
   // =========================
   // SEARCH STATE
   // =========================
@@ -37,12 +43,35 @@ export default function Images() {
   // =========================
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [locationName, setLocationName] = useState(""); // OPTIONAL LOCATION
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [userTags, setUserTags] = useState("");
+  const [selectedAlbumIds, setSelectedAlbumIds] = useState([]);
+  const [albums, setAlbums] = useState([]);
+
   const [isUploading, setIsUploading] = useState(false);
   const [deletingImageId, setDeletingImageId] = useState(null);
-  const navigate = useNavigate();
+
+  // =========================
+  // LOAD USER ALBUMS (FOR SELECT)
+  // =========================
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        const data = await getAlbums();
+        setAlbums(
+          data.filter(
+            (a) => a.owner_user_id === user?.id || user?.role === "admin"
+          )
+        );
+      } catch (err) {
+        console.error("FAILED TO LOAD ALBUMS:", err);
+      }
+    };
+
+    if (user) fetchAlbums();
+  }, [user]);
 
   // =========================
   // IMAGE PREVIEW HANDLING
@@ -60,8 +89,19 @@ export default function Images() {
   const clearImage = () => {
     setImageFile(null);
     setImagePreview(null);
-    const input = document.getElementById("cover-image-input");
+    const input = document.getElementById("image-upload-input");
     if (input) input.value = "";
+  };
+
+  // =========================
+  // ALBUM SELECT HANDLING
+  // =========================
+  const toggleAlbum = (albumId) => {
+    setSelectedAlbumIds((prev) =>
+      prev.includes(albumId)
+        ? prev.filter((id) => id !== albumId)
+        : [...prev, albumId]
+    );
   };
 
   // =========================
@@ -78,13 +118,21 @@ export default function Images() {
     setIsUploading(true);
 
     try {
-      await uploadImage(
-        imageFile,
-        title,
-        description,
-        [],
-        userTags.split(",").map((t) => t.trim())
-      );
+      const formData = new FormData();
+      formData.append("file", imageFile);
+      formData.append("title", title);
+      formData.append("description", description);
+      if (locationName && locationName.trim()) {
+        formData.append("location_name", locationName.trim());
+      }
+      selectedAlbumIds.forEach((id) => formData.append("album_ids", id));
+      userTags
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t)
+        .forEach((tag) => formData.append("user_tags", tag));
+
+      await uploadImage(formData);
 
       await refreshUserImages();
       setImagesCount((prev) => prev + 1);
@@ -92,10 +140,12 @@ export default function Images() {
       // RESET FORM
       setTitle("");
       setDescription("");
+      setLocationName("");
       setUserTags("");
+      setSelectedAlbumIds([]);
       clearImage();
     } catch (err) {
-      console.error(err);
+      console.error("UPLOAD FAILED:", err);
       alert(err.message || "Upload failed");
     } finally {
       setIsUploading(false);
@@ -116,7 +166,7 @@ export default function Images() {
     setDeletingImageId(image.id);
 
     try {
-      await deleteImage(image.id); // BACKEND HANDLES DB + S3
+      await deleteImage(image.id);
       await refreshUserImages();
       setImagesCount((prev) => Math.max(prev - 1, 0));
     } catch (err) {
@@ -165,36 +215,61 @@ export default function Images() {
       <section className={`form-container ${darkMode ? "form-dark" : "form-light"}`}>
         <form onSubmit={handleUpload} className="space-y-4">
           {/* TITLE */}
-          <label className="block font-medium">Title (required)</label>
+          <label className="block font-medium">Image title (required)</label>
           <input
-            type="text"
             value={title}
-            placeholder="San Juan mountains"
             onChange={(e) => setTitle(e.target.value)}
-            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+            className="inputs-set"
             required
           />
 
           {/* DESCRIPTION */}
-          <label className="block font-medium">Description (optional)</label>
+          <label className="block font-medium">Image description (required)</label>
           <textarea
             rows={3}
-            placeholder="This is an image of the San Juan mountain range"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
+            className="inputs-set resize-none"
             required
           />
 
-          {/* TAGS */}
-          <label className="block font-medium">Tags (one tag is required, comma separated)</label>
+          {/* LOCATION */}
+          <label className="block font-medium">
+            Location (optional – city, place, landmark)
+          </label>
           <input
-            type="text"
+            value={locationName}
+            onChange={(e) => setLocationName(e.target.value)}
+            className="inputs-set"
+            placeholder="San Juan Mountains, CO"
+          />
+
+          {/* TAGS */}
+          <label className="block font-medium">
+            Image tags (comma separated, at least one)
+          </label>
+          <input
             value={userTags}
             onChange={(e) => setUserTags(e.target.value)}
-            className={`inputs-set ${darkMode ? "inputs-set-dark" : "inputs-set-light"}`}
-            placeholder="Mountains, san juan, scenery"
+            className="inputs-set"
           />
+
+          {/* ALBUM SELECT */}
+          <label className="block font-medium">
+            Add to Albums (optional)
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {albums.map((album) => (
+              <label key={album.id} className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedAlbumIds.includes(album.id)}
+                  onChange={() => toggleAlbum(album.id)}
+                />
+                <span>{album.title}</span>
+              </label>
+            ))}
+          </div>
 
           {/* IMAGE FILE */}
           <div className="space-y-2 file-preview-container">
@@ -204,32 +279,25 @@ export default function Images() {
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-48 object-contain rounded-lg border border-gray-400"
+                  className="w-full h-48 object-contain rounded-lg border"
                 />
                 <button
                   type="button"
                   onClick={clearImage}
-                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                  className="absolute top-2 right-2 bg-red-600 text-white px-3 py-1 rounded"
                 >
                   Remove
                 </button>
               </div>
             ) : (
               <label
-                htmlFor="cover-image-input"
-                className={`inputs-set cursor-pointer text-center py-8 ${
-                  darkMode ? "inputs-set-dark" : "inputs-set-light"
-                }`}
+                htmlFor="image-upload-input"
+                className="inputs-set cursor-pointer text-center py-8"
               >
-            <ImageUp size={80} className="mx-auto mb-4 h-28 object-contain opacity-70"/>
-
-                <p>Only upload one image at a time.</p>
-                <p>
-                  <span className="font-semibold">Click to upload</span> or{" "}
-                  <span className="font-semibold">drag & drop</span>
-                </p>
+                <ImageUp size={64} className="mx-auto mb-4 opacity-70" />
+                <p>Click to upload or drag & drop</p>
                 <input
-                  id="cover-image-input"
+                  id="image-upload-input"
                   type="file"
                   accept="image/*"
                   onChange={handleImageChange}
@@ -243,7 +311,7 @@ export default function Images() {
           <button
             type="submit"
             disabled={isUploading}
-            className={`button-set ${darkMode ? "button-set-dark" : "button-set-light"}`}
+            className="button-set"
           >
             {isUploading ? "Uploading..." : "Upload Image"}
           </button>
@@ -251,11 +319,11 @@ export default function Images() {
       </section>
 
       {/* YOUR IMAGES */}
-      <section>
+      <section className="mt-14">
         <h2 className="section-header flex items-center gap-2">
           <span>Your Images</span>
           <div className="rounded-full p-2 shadow bg-purple-500 text-white">
-            <User size={16} />
+            <SquareUser size={16} />
           </div>
         </h2>
 
@@ -273,10 +341,10 @@ export default function Images() {
                 <ImageCard
                   key={image.id}
                   image={image}
-                  darkMode={darkMode}
                   canEdit={canEditImage(image)}
-                  onOpen={(img) => navigate(`/images/${img.id}`)}
+                  onOpen={() => navigate(`/images/${image.id}`)}
                   onDelete={handleDeleteImage}
+                  deleting={deletingImageId === image.id}
                 />
               ))}
             </div>

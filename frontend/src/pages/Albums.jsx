@@ -8,7 +8,7 @@ import Header from "../components/module/Header";
 import AlbumCard from "../components/module/AlbumCard";
 import { getAlbums, createAlbum, deleteAlbum } from "../services/api";
 import { useNavigate } from "react-router-dom";
-import { LibraryBig, User } from "lucide-react";
+import { LibraryBig, BookUser, BookHeart } from "lucide-react";
 import defaultAlbumImage from "/default_album_image.png";
 import { useUserData } from "../services/UserDataContext";
 import SearchBar from "../components/module/Searchbar";
@@ -254,8 +254,12 @@ export default function Albums() {
       <section>
         <h2 className="section-header flex items-center gap-2">
           <span>Your Albums</span>
-          <div className="rounded-full p-2 shadow bg-purple-500 text-white">
-            <User size={16} />
+          <div className="rounded-full p-2 shadow bg-purple-500 text-white mr-6">
+            <BookUser size={16} />
+          </div>
+          <span>Your Favorite Albums</span>
+          <div className="rounded-full p-2 shadow bg-red-500 text-white">
+            <BookHeart size={16} />
           </div>
         </h2>
 

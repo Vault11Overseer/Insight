@@ -4,7 +4,7 @@
 
 // IMPORTS
 import React from "react";
-import { Eye, Trash2, User } from "lucide-react";
+import { Eye, Trash2, SquareUser } from "lucide-react";
 import defaultImage from "/default_album_image.png";
 
 // EXPORT IMAGE CARD
@@ -48,6 +48,12 @@ export default function ImageCard({ image, onOpen, onDelete, canEdit, darkMode,}
           }}
           className="card-image"
         />
+           {/* OWNER BADGE */}
+      {image.uploader_user_id && (
+        <div className="card-owner-badge">
+          <SquareUser size={14} />
+        </div>
+      )}
 
         {/* HOVER ACTION ICONS */}
         <div
@@ -80,12 +86,7 @@ export default function ImageCard({ image, onOpen, onDelete, canEdit, darkMode,}
         </div>
       </div>
 
-      {/* OWNER BADGE */}
-      {image.uploader_user_id && (
-        <div className="card-owner-badge">
-          <User size={14} />
-        </div>
-      )}
+   
 
       {/* IMAGE INFO */}
       <div className="card-body">

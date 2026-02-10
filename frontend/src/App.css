@@ -260,7 +260,7 @@ html, body { margin: 0; padding: 0;}
   .card-light { @apply card-interactive-light; }
   .card-image-wrapper {@apply w-full h-48 rounded-lg overflow-hidden flex items-center justify-center relative;}
   .card-image {@apply w-full h-full object-contain transition-transform duration-300 group-hover:scale-105;}
-  .card-owner-badge {@apply absolute bottom-16 left-3 rounded-full p-1 shadow bg-purple-500 text-white;}
+  .card-owner-badge {@apply absolute bottom-1 left-1 rounded-full p-1 shadow bg-purple-500 text-white;}
   .card-overlay {@apply absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-4;}
 
   .card-action-icon {@apply p-3 rounded-full transition-colors duration-300; }
@@ -268,10 +268,8 @@ html, body { margin: 0; padding: 0;}
   .card-action-edit-light { @apply bg-[#263248] text-white hover:bg-[#12264a]; }
 
   .card-action-delete { @apply bg-red-600 hover:bg-red-700 text-white; }
-  .card-body {@apply p-5 text-center;}
+  .card-body {@apply p-2 text-center;}
   .card-title {@apply text-lg font-semibold truncate;}
-  .card-description {@apply text-sm opacity-80 truncate;}
+  .card-description {@apply text-sm opacity-80 whitespace-normal break-words;}
   .card-action-scale {@apply transition-transform duration-200 hover:scale-150 active:scale-150;}
 }
-
-
