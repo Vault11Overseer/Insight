@@ -223,6 +223,24 @@ export const deleteAlbum = async (albumId) => {
   return res.json();
 };
 
+
+// REMOVE ALBUM COVER
+export const removeAlbumCover = async (albumId) => {
+  const res = await fetch(`${API_BASE_URL}/albums/${albumId}/cover`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: "Failed to remove album cover" }));
+    throw new Error(error.detail || "Failed to remove album cover");
+  }
+
+  return res.json();
+};
+
+
+
 // =========================
 // S3 UPLOAD HELPERS
 // =========================

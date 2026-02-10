@@ -83,12 +83,15 @@ export default function Register() {
           <div className="auth-header">
             <h2 className="auth-title">Create an account</h2>
 
-            <button
-              onClick={toggleDarkMode}
-              className={`theme-toggle ${darkMode ? "theme-toggle-dark" : "theme-toggle-light"}`}
-            >
-              {darkMode ? <Sun size={30} /> : <Moon size={30} />}
-            </button>
+           
+                       <button
+                         onClick={toggleDarkMode}
+                         className={`theme-toggle transform transition-transform duration-200 hover:scale-105 cursor-pointer ${
+                           darkMode ? "theme-toggle-dark" : "theme-toggle-light"
+                         }`}
+                       >
+                         {darkMode  ? <Sun size={30} /> : <Moon size={30} />}
+                       </button>
           </div>
 
           {/* SUBTEXT */}
@@ -96,7 +99,7 @@ export default function Register() {
             Already have an account?{" "}
             <Link
               to="/login"
-              className={`link ${darkMode ? "link-dark" : "link-light"}`}
+              className={`link hover:text-[19px] ${darkMode ? "link-dark" : "link-light"}`}
             >
               Log in
             </Link>
@@ -153,12 +156,12 @@ export default function Register() {
               />
 
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className={`absolute right-3 top-1/2 -translate-y-1/2 hover:scale-105 ${darkMode ? "text-[#bdd63b] border-2 border-slate-400 bg-slate-100 rounded-xl p-0.5" : "text-[#1E3A8A] border-2 border-slate-400 bg-white rounded-xl p-0.5 "}`}
+                            >
+                              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
             </div>
 
             {/* TERMS */}

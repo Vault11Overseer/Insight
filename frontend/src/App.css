@@ -20,8 +20,8 @@ html, body { margin: 0; padding: 0;}
 
 /* LINKS */
 @layer components {
-  .link { @apply font-medium underline cursor-pointer transition-transform duration-300 hover:scale-105; }
-  .link-dark { color: #bdd63b; }
+  .link { @apply font-medium underline cursor-pointer transition-transform duration-300 hover:scale-105 ; }
+  .link-dark { color: #bdd63b ; }
   .link-light { color: #1e1c29; }
 }
 
